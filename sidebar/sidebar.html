@@ -1,0 +1,62 @@
+<!-- 知视 KnowledgeView 侧边栏 HTML -->
+<!-- 此HTML会被注入到Shadow DOM中，不需要完整HTML文档结构 -->
+<div id="kv-app" class="kv-app">
+  <!-- 头部 -->
+  <div class="kv-header">
+    <div class="kv-logo">知</div>
+    <span class="kv-title">知视 KnowledgeView</span>
+    <button class="kv-collapse-btn" title="折叠">▶</button>
+  </div>
+
+  <!-- 内容区，根据状态切换不同视图 -->
+  <div class="kv-body" id="kv-body">
+    <!-- 视图1：初始状态 - 视频信息 + 生成按钮 -->
+    <div class="kv-view kv-view-initial" id="kv-view-initial">
+      <div class="kv-video-info" id="kv-video-info">
+        <!-- 动态填充视频信息 -->
+      </div>
+      <button class="kv-btn kv-btn-primary" id="kv-generate-btn">生成中文知识资料</button>
+      <p class="kv-hint">将自动生成摘要、知识卡片和笔记</p>
+    </div>
+
+    <!-- 视图2：处理中 -->
+    <div class="kv-view kv-view-processing" id="kv-view-processing" style="display:none;">
+      <div class="kv-status-bar">处理中...</div>
+      <div class="kv-steps" id="kv-steps">
+        <!-- 5个处理步骤，动态更新状态 -->
+      </div>
+      <button class="kv-btn kv-btn-secondary" id="kv-cancel-btn">取消</button>
+    </div>
+
+    <!-- 视图3：错误 -->
+    <div class="kv-view kv-view-error" id="kv-view-error" style="display:none;">
+      <div class="kv-error-icon">⚠</div>
+      <div class="kv-error-msg" id="kv-error-msg"></div>
+      <button class="kv-btn kv-btn-primary" id="kv-retry-btn">重试</button>
+    </div>
+
+    <!-- 视图4：结果展示 - Tab切换 -->
+    <div class="kv-view kv-view-result" id="kv-view-result" style="display:none;">
+      <div class="kv-result-header">
+        <span class="kv-result-stats" id="kv-result-stats"></span>
+        <button class="kv-btn-icon" id="kv-export-btn" title="导出">📥</button>
+      </div>
+      <div class="kv-tabs">
+        <button class="kv-tab active" data-tab="summary">摘要</button>
+        <button class="kv-tab" data-tab="cards">知识卡片</button>
+        <button class="kv-tab" data-tab="notes">笔记</button>
+        <button class="kv-tab" data-tab="timeline">时间轴</button>
+      </div>
+      <div class="kv-tab-content" id="kv-tab-content">
+        <!-- 动态填充当前Tab内容 -->
+      </div>
+      <button class="kv-btn kv-btn-secondary" id="kv-regenerate-btn">重新生成</button>
+    </div>
+
+    <!-- 视图5：无字幕 -->
+    <div class="kv-view kv-view-no-subtitle" id="kv-view-no-subtitle" style="display:none;">
+      <div class="kv-error-icon">📺</div>
+      <p class="kv-hint">该视频无字幕，暂不支持处理</p>
+    </div>
+  </div>
+</div>

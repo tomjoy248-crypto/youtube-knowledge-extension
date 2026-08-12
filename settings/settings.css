@@ -1,0 +1,314 @@
+/* ============================================================
+ * 知视 KnowledgeView 设置页面样式
+ * ============================================================ */
+
+/* ========== 全局重置 ========== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: #f0f2f5;
+  color: #1a2b3c;
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ========== 容器 ========== */
+.settings-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 32px 20px 60px;
+}
+
+/* ========== 头部 ========== */
+.settings-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.settings-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #2563eb, #10b981);
+  color: #ffffff;
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.settings-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a2b3c;
+  margin-bottom: 4px;
+}
+
+.settings-subtitle {
+  font-size: 14px;
+  color: #6b7d8f;
+}
+
+/* ========== 主体 ========== */
+.settings-main {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ========== 分组卡片 ========== */
+.settings-section {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* 分组标题 - 带底部边框 */
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a2b3c;
+  padding-bottom: 12px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+/* ========== 表单 ========== */
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
+}
+
+/* 行内表单组（用于toggle开关行） */
+.form-group-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.form-group-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.form-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a2b3c;
+  margin-bottom: 6px;
+}
+
+.form-group-row .form-label {
+  margin-bottom: 2px;
+}
+
+.form-hint {
+  display: block;
+  font-size: 12px;
+  color: #6b7d8f;
+}
+
+/* ========== 输入框和下拉框统一样式 ========== */
+.form-input,
+.form-select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #1a2b3c;
+  background: #ffffff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+
+.form-input:focus,
+.form-select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-input::placeholder {
+  color: #94a3b8;
+}
+
+/* 下拉框自定义箭头 */
+.form-select {
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7d8f' d='M6 8L2 4h8z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+
+/* ========== Toggle开关样式 ========== */
+.toggle {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #cbd5e1;
+  border-radius: 12px;
+  transition: background 0.3s;
+}
+
+/* 滑动小球 */
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background: #ffffff;
+  border-radius: 50%;
+  transition: transform 0.3s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* 开启状态 - 蓝色渐变背景 */
+.toggle input:checked + .toggle-slider {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+.toggle input:checked + .toggle-slider::before {
+  transform: translateX(20px);
+}
+
+/* ========== 按钮 ========== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 24px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+/* 主按钮 - 蓝色渐变（与侧边栏一致） */
+.btn-primary {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+}
+
+.btn-primary:hover {
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+}
+
+/* 次要按钮 - 灰色边框（与侧边栏一致） */
+.btn-secondary {
+  background: #ffffff;
+  color: #6b7d8f;
+  border: 1px solid #e2e8f0;
+}
+
+.btn-secondary:hover {
+  background: #f7f9fc;
+  border-color: #cbd5e1;
+  color: #1a2b3c;
+}
+
+/* ========== 缓存数量显示 ========== */
+.cache-count {
+  font-size: 20px;
+  font-weight: 700;
+  color: #2563eb;
+  min-width: 40px;
+  text-align: center;
+}
+
+/* ========== 操作区 ========== */
+.settings-actions {
+  display: flex;
+  justify-content: center;
+  padding-top: 8px;
+}
+
+.settings-actions .btn {
+  min-width: 200px;
+}
+
+/* ========== 保存提示Toast ========== */
+.save-toast {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: #10b981;
+  color: #ffffff;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  opacity: 0;
+  transition: all 0.3s ease;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.save-toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+/* ========== 响应式 ========== */
+@media (max-width: 480px) {
+  .settings-container {
+    padding: 20px 12px 40px;
+  }
+
+  .settings-section {
+    padding: 16px;
+  }
+
+  .settings-actions .btn {
+    width: 100%;
+  }
+}

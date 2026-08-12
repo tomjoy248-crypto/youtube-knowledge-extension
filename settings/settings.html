@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>知视 - 设置</title>
+  <link rel="stylesheet" href="settings.css">
+</head>
+<body>
+  <div class="settings-container">
+    <!-- 头部 -->
+    <header class="settings-header">
+      <div class="settings-logo">知</div>
+      <h1 class="settings-title">知视 KnowledgeView</h1>
+      <p class="settings-subtitle">设置</p>
+    </header>
+
+    <main class="settings-main">
+      <!-- AI模型配置区 -->
+      <section class="settings-section">
+        <h2 class="section-title">AI 模型配置</h2>
+        <div class="form-group">
+          <label class="form-label" for="llm-model">LLM 模型</label>
+          <select id="llm-model" class="form-select">
+            <option value="claude-3-5-sonnet">Claude 3.5 Sonnet</option>
+            <option value="claude-3-5-sonnet-latest">Claude 3.5 Sonnet (Latest)</option>
+            <option value="claude-3-5-haiku">Claude 3.5 Haiku</option>
+            <option value="claude-3-5-haiku-latest">Claude 3.5 Haiku (Latest)</option>
+            <option value="gpt-4o">GPT-4o</option>
+            <option value="gpt-4o-mini">GPT-4o mini</option>
+            <option value="gpt-4-turbo">GPT-4 Turbo</option>
+            <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="api-key">API Key</label>
+          <input type="password" id="api-key" class="form-input" placeholder="请输入 API Key" autocomplete="off">
+          <p class="form-hint">支持 Anthropic Claude 和 OpenAI GPT 系列模型</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="translate-style">翻译风格</label>
+          <select id="translate-style" class="form-select">
+            <option value="readable">通俗易读</option>
+            <option value="academic">学术严谨</option>
+            <option value="casual">口语化</option>
+          </select>
+        </div>
+      </section>
+
+      <!-- 显示偏好区 -->
+      <section class="settings-section">
+        <h2 class="section-title">显示偏好</h2>
+        <div class="form-group form-group-row">
+          <div class="form-group-text">
+            <label class="form-label" for="bilingual-subtitles">双语字幕</label>
+            <span class="form-hint">同时显示原文和中文翻译</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="bilingual-subtitles">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="form-group form-group-row">
+          <div class="form-group-text">
+            <label class="form-label" for="auto-generate">自动生成</label>
+            <span class="form-hint">打开视频时自动生成知识资料</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="auto-generate">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="form-group form-group-row">
+          <div class="form-group-text">
+            <label class="form-label" for="sidebar-default-open">侧边栏默认展开</label>
+            <span class="form-hint">页面加载时自动展开侧边栏</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="sidebar-default-open">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </section>
+
+      <!-- 数据管理区 -->
+      <section class="settings-section">
+        <h2 class="section-title">数据管理</h2>
+        <div class="form-group form-group-row">
+          <div class="form-group-text">
+            <label class="form-label">已缓存视频</label>
+            <span class="form-hint">本地存储的已处理视频记录</span>
+          </div>
+          <span class="cache-count" id="cache-count">0</span>
+        </div>
+        <div class="form-group">
+          <button class="btn btn-secondary" id="clear-cache-btn">清理缓存</button>
+        </div>
+      </section>
+
+      <!-- 保存按钮 -->
+      <div class="settings-actions">
+        <button class="btn btn-primary" id="save-btn">保存设置</button>
+      </div>
+    </main>
+
+    <!-- 保存提示Toast -->
+    <div class="save-toast" id="save-toast">已保存</div>
+  </div>
+  <script src="settings.js"></script>
+</body>
+</html>

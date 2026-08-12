@@ -1,0 +1,66 @@
+{
+  "manifest_version": 3,
+  "name": "知视 KnowledgeView",
+  "version": "1.0.0",
+  "description": "将YouTube英文长视频自动转化为结构化中文知识卡片、笔记和时间轴摘要",
+  "permissions": [
+    "storage",
+    "scripting",
+    "downloads",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "*://*.youtube.com/*",
+    "*://api.anthropic.com/*",
+    "*://api.openai.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.youtube.com/*"],
+      "js": ["content/main-world.js"],
+      "world": "MAIN",
+      "run_at": "document_start"
+    },
+    {
+      "matches": ["*://*.youtube.com/*"],
+      "js": [
+        "lib/storage.js",
+        "lib/llm.js",
+        "lib/subtitle.js",
+        "lib/processor.js",
+        "content/content.js"
+      ],
+      "css": ["content/content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "content/main-world.js",
+        "sidebar/sidebar.html",
+        "sidebar/sidebar.css",
+        "sidebar/sidebar.js",
+        "icons/*"
+      ],
+      "matches": ["*://*.youtube.com/*"]
+    }
+  ],
+  "options_page": "settings/settings.html",
+  "action": {
+    "default_title": "知视 KnowledgeView",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

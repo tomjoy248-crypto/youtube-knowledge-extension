@@ -1,0 +1,909 @@
+/* ============================================================
+ * 知视 KnowledgeView 侧边栏样式
+ * 运行在Shadow DOM中，不会影响YouTube页面
+ * ============================================================ */
+
+/* ========== CSS变量定义 ========== */
+.kv-app {
+  --kv-primary: #2563eb;
+  --kv-primary-dark: #1d4ed8;
+  --kv-primary-light: #eff6ff;
+  --kv-secondary: #10b981;
+  --kv-bg: #ffffff;
+  --kv-bg-hover: #f7f9fc;
+  --kv-text: #1a2b3c;
+  --kv-text-secondary: #6b7d8f;
+  --kv-border: #e2e8f0;
+  --kv-border-dark: #cbd5e1;
+  --kv-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --kv-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --kv-radius-sm: 6px;
+  --kv-radius-md: 8px;
+  --kv-radius-lg: 10px;
+
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  font-family: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 14px;
+  color: var(--kv-text);
+  background-color: var(--kv-bg);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.kv-app *,
+.kv-app *::before,
+.kv-app *::after {
+  box-sizing: border-box;
+}
+
+/* ========== 头部 ========== */
+.kv-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--kv-border);
+  flex-shrink: 0;
+  background: var(--kv-bg);
+}
+
+.kv-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--kv-radius-md);
+  background: linear-gradient(135deg, var(--kv-primary), var(--kv-secondary));
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.kv-title {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--kv-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kv-collapse-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--kv-text-secondary);
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: var(--kv-radius-sm);
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.kv-collapse-btn:hover {
+  background: var(--kv-bg-hover);
+  color: var(--kv-text);
+}
+
+/* ========== 内容区 ========== */
+.kv-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px;
+}
+
+/* 滚动条样式 */
+.kv-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.kv-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.kv-body::-webkit-scrollbar-thumb {
+  background: var(--kv-border);
+  border-radius: 3px;
+}
+
+.kv-body::-webkit-scrollbar-thumb:hover {
+  background: var(--kv-border-dark);
+}
+
+/* ========== 视图通用 ========== */
+.kv-view {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ========== 视频信息卡片 ========== */
+.kv-video-info {
+  background: var(--kv-bg-hover);
+  border: 1px solid var(--kv-border);
+  border-radius: var(--kv-radius-md);
+  padding: 14px;
+}
+
+.kv-video-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--kv-text);
+  margin: 0 0 10px 0;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.kv-video-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  font-size: 12px;
+  color: var(--kv-text-secondary);
+}
+
+.kv-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.kv-meta-label {
+  color: var(--kv-text-secondary);
+}
+
+.kv-meta-value {
+  color: var(--kv-text);
+  font-weight: 500;
+}
+
+/* 字幕质量徽章 */
+.kv-quality-badge {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.kv-quality-badge.high {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.kv-quality-badge.medium {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.kv-quality-badge.low {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* ========== 按钮基础样式 ========== */
+.kv-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: var(--kv-radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+/* 主按钮 - 蓝色渐变 */
+.kv-btn-primary {
+  background: linear-gradient(135deg, var(--kv-primary), var(--kv-primary-dark));
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+}
+
+.kv-btn-primary:hover {
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+  transform: translateY(-1px);
+}
+
+.kv-btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+}
+
+/* 次要按钮 - 灰色边框 */
+.kv-btn-secondary {
+  background: var(--kv-bg);
+  color: var(--kv-text-secondary);
+  border: 1px solid var(--kv-border);
+}
+
+.kv-btn-secondary:hover {
+  background: var(--kv-bg-hover);
+  border-color: var(--kv-border-dark);
+  color: var(--kv-text);
+}
+
+/* 图标按钮 */
+.kv-btn-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: var(--kv-radius-sm);
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.2s;
+}
+
+.kv-btn-icon:hover {
+  background: var(--kv-bg-hover);
+}
+
+/* ========== 提示文字 ========== */
+.kv-hint {
+  font-size: 12px;
+  color: var(--kv-text-secondary);
+  text-align: center;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ========== 处理中视图 ========== */
+.kv-status-bar {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--kv-text);
+  padding: 8px 0;
+}
+
+.kv-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* 单个步骤 */
+.kv-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--kv-radius-sm);
+  transition: background 0.2s;
+}
+
+.kv-step.active {
+  background: var(--kv-primary-light);
+}
+
+/* 步骤图标 */
+.kv-step-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-size: 12px;
+  flex-shrink: 0;
+  background: var(--kv-border);
+  color: var(--kv-text-secondary);
+}
+
+.kv-step.done .kv-step-icon {
+  background: var(--kv-secondary);
+  color: #ffffff;
+}
+
+.kv-step.active .kv-step-icon {
+  background: var(--kv-primary);
+  color: #ffffff;
+}
+
+.kv-step.error .kv-step-icon {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+/* 步骤内容 */
+.kv-step-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.kv-step-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--kv-text);
+}
+
+.kv-step.pending .kv-step-title {
+  color: var(--kv-text-secondary);
+}
+
+.kv-step-detail {
+  font-size: 11px;
+  color: var(--kv-text-secondary);
+  margin-top: 2px;
+}
+
+/* 加载旋转动画 */
+.kv-step-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: kv-spin 0.8s linear infinite;
+}
+
+@keyframes kv-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ========== 错误视图 ========== */
+.kv-error-icon {
+  text-align: center;
+  font-size: 48px;
+  margin: 20px 0;
+  line-height: 1;
+}
+
+.kv-error-msg {
+  text-align: center;
+  font-size: 14px;
+  color: var(--kv-text-secondary);
+  line-height: 1.6;
+  margin-bottom: 8px;
+  padding: 0 8px;
+}
+
+/* ========== 结果视图 ========== */
+.kv-result-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.kv-result-stats {
+  font-size: 12px;
+  color: var(--kv-text-secondary);
+}
+
+/* ========== Tab栏 ========== */
+.kv-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--kv-border);
+  margin-bottom: 12px;
+}
+
+.kv-tab {
+  flex: 1;
+  padding: 8px 4px;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--kv-text-secondary);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.2s;
+}
+
+.kv-tab:hover {
+  color: var(--kv-primary);
+}
+
+.kv-tab.active {
+  color: var(--kv-primary);
+  border-bottom-color: var(--kv-primary);
+  font-weight: 600;
+}
+
+/* ========== Tab内容区 ========== */
+.kv-tab-content {
+  min-height: 200px;
+}
+
+/* ========== 摘要视图 ========== */
+.kv-summary {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--kv-text);
+}
+
+.kv-summary-section {
+  margin-bottom: 14px;
+}
+
+.kv-summary-section:last-child {
+  margin-bottom: 0;
+}
+
+.kv-summary-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--kv-primary);
+  margin-bottom: 6px;
+}
+
+.kv-summary-text {
+  font-size: 14px;
+  color: var(--kv-text);
+  line-height: 1.7;
+}
+
+.kv-summary-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.kv-tag {
+  display: inline-block;
+  padding: 2px 10px;
+  background: var(--kv-primary-light);
+  color: var(--kv-primary);
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+/* 摘要中的列表 */
+.kv-summary ul.note-list {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.kv-summary ul.note-list li {
+  font-size: 13px;
+  color: var(--kv-text);
+  line-height: 1.8;
+  margin-bottom: 4px;
+}
+
+/* ========== 知识卡片 ========== */
+.kc-card {
+  background: var(--kv-bg);
+  border: 1px solid var(--kv-border);
+  border-radius: var(--kv-radius-md);
+  margin-bottom: 10px;
+  overflow: hidden;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.kc-card:hover {
+  box-shadow: var(--kv-shadow);
+  border-color: var(--kv-border-dark);
+}
+
+.kc-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* 卡片类型标签 - 4种类型不同颜色 */
+.kc-type {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.kc-type.concept {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.kc-type.process {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.kc-type.compare {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.kc-type.qa {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+/* 兼容旧类型名称 */
+.kc-type.definition {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.kc-type.example {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.kc-type.insight {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+.kc-title {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--kv-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+/* 卡片时间戳 - 可点击的蓝色标签 */
+.kc-time {
+  font-size: 12px;
+  color: var(--kv-primary);
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.kc-time:hover {
+  background: var(--kv-primary-light);
+  text-decoration: underline;
+}
+
+/* 卡片收藏按钮 */
+.kc-bookmark {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  border-radius: var(--kv-radius-sm);
+  flex-shrink: 0;
+  color: var(--kv-text-secondary);
+  transition: background 0.2s, color 0.2s;
+}
+
+.kc-bookmark:hover {
+  background: var(--kv-bg-hover);
+}
+
+.kc-bookmark.bookmarked {
+  color: #f59e0b;
+}
+
+/* 卡片展开/折叠指示器 */
+.kc-toggle {
+  font-size: 12px;
+  color: var(--kv-text-secondary);
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+
+.kc-card.expanded .kc-toggle {
+  transform: rotate(90deg);
+}
+
+/* 卡片正文 */
+.kc-body {
+  display: none;
+  padding: 0 12px 12px 12px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--kv-text-secondary);
+}
+
+.kc-card.expanded .kc-body {
+  display: block;
+}
+
+.kc-body-section {
+  margin-bottom: 8px;
+}
+
+.kc-body-section:last-child {
+  margin-bottom: 0;
+}
+
+.kc-body-label {
+  font-weight: 600;
+  color: var(--kv-text);
+  margin-bottom: 2px;
+  font-size: 12px;
+}
+
+/* ========== 笔记视图 ========== */
+.kv-notes {
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--kv-text);
+}
+
+/* 笔记标题 */
+.note-h1 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--kv-text);
+  margin: 16px 0 8px 0;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--kv-border);
+}
+
+.note-h1:first-child {
+  margin-top: 0;
+}
+
+.note-h2 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--kv-primary);
+  margin: 12px 0 6px 0;
+}
+
+/* 笔记段落 */
+.note-p {
+  font-size: 14px;
+  color: var(--kv-text);
+  line-height: 1.8;
+  margin: 0 0 8px 0;
+}
+
+/* 笔记中的时间戳 - 可点击的蓝色标签 */
+.note-timestamp {
+  display: inline-block;
+  color: var(--kv-primary);
+  background: var(--kv-primary-light);
+  padding: 1px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  margin: 0 2px;
+  transition: all 0.2s;
+}
+
+.note-timestamp:hover {
+  background: var(--kv-primary);
+  color: #ffffff;
+}
+
+/* 笔记列表 */
+.note-list {
+  margin: 0 0 8px 0;
+  padding-left: 20px;
+}
+
+.note-list li {
+  font-size: 14px;
+  color: var(--kv-text);
+  line-height: 1.8;
+  margin-bottom: 4px;
+}
+
+/* ========== 时间轴视图 ========== */
+.kv-timeline {
+  position: relative;
+  padding-left: 8px;
+}
+
+/* 时间轴竖线 */
+.kv-timeline::before {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 4px;
+  bottom: 4px;
+  width: 2px;
+  background: var(--kv-border);
+}
+
+/* 时间轴节点 */
+.tl-item {
+  position: relative;
+  padding: 0 0 16px 24px;
+}
+
+.tl-item:last-child {
+  padding-bottom: 0;
+}
+
+/* 时间轴圆点 */
+.tl-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 4px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--kv-bg);
+  border: 2px solid var(--kv-primary);
+  z-index: 1;
+}
+
+/* 时间轴时间标签 */
+.tl-time {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--kv-primary);
+  background: var(--kv-primary-light);
+  padding: 2px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-bottom: 4px;
+  transition: all 0.2s;
+}
+
+.tl-time:hover {
+  background: var(--kv-primary);
+  color: #ffffff;
+}
+
+/* 时间轴内容 */
+.tl-content {
+  font-size: 13px;
+  color: var(--kv-text);
+  line-height: 1.6;
+  margin-top: 4px;
+}
+
+.tl-title {
+  font-weight: 600;
+  color: var(--kv-text);
+  margin-bottom: 2px;
+}
+
+.tl-desc {
+  color: var(--kv-text-secondary);
+  font-size: 12px;
+}
+
+/* ========== 折叠状态 ========== */
+.kv-app.collapsed {
+  width: 48px;
+}
+
+.kv-app.collapsed .kv-title,
+.kv-app.collapsed .kv-body {
+  display: none;
+}
+
+.kv-app.collapsed .kv-header {
+  flex-direction: column;
+  padding: 8px 4px;
+  gap: 8px;
+  border-bottom: none;
+}
+
+.kv-app.collapsed .kv-collapse-btn {
+  transform: rotate(180deg);
+}
+
+/* ========== 空状态 ========== */
+.kv-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--kv-text-secondary);
+  font-size: 14px;
+}
+
+/* ========== 导出菜单 ========== */
+.kv-export-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: var(--kv-bg);
+  border: 1px solid var(--kv-border);
+  border-radius: var(--kv-radius-md);
+  box-shadow: var(--kv-shadow-md);
+  z-index: 100;
+  overflow: hidden;
+  min-width: 140px;
+}
+
+.kv-export-item {
+  padding: 8px 14px;
+  font-size: 13px;
+  color: var(--kv-text);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.kv-export-item:hover {
+  background: var(--kv-primary-light);
+  color: var(--kv-primary);
+}
+
+/* ========== 卡片英文原文 ========== */
+.kc-english {
+  font-style: italic;
+  color: var(--kv-text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+  padding: 4px 8px;
+  background: var(--kv-bg-hover);
+  border-radius: var(--kv-radius-sm);
+  border-left: 3px solid var(--kv-border-dark);
+}
+
+/* ========== 笔记引用块 ========== */
+.note-quote {
+  margin: 8px 0;
+  padding: 8px 12px;
+  background: var(--kv-bg-hover);
+  border-left: 3px solid var(--kv-primary);
+  color: var(--kv-text-secondary);
+  font-size: 13px;
+  line-height: 1.6;
+  border-radius: 0 var(--kv-radius-sm) var(--kv-radius-sm) 0;
+}
+
+/* 笔记中的 H3/H4 */
+.note-h2 + h3.note-h2,
+h4.note-h2 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--kv-text);
+  margin: 10px 0 4px 0;
+}
+
+h4.note-h2 {
+  color: var(--kv-text-secondary);
+}
+
+/* ========== 响应式适配 ========== */
+@media (max-width: 360px) {
+  .kv-body {
+    padding: 12px;
+  }
+
+  .kv-tab {
+    font-size: 12px;
+    padding: 6px 2px;
+  }
+
+  .kc-title {
+    font-size: 13px;
+  }
+}

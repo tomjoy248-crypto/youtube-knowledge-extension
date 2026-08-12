@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>知视 KnowledgeView - 图标生成器</title>
+  <style>
+    body {
+      font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", sans-serif;
+      padding: 40px;
+      background: #f5f5f5;
+      color: #333;
+      line-height: 1.6;
+    }
+    h1 {
+      color: #1a73e8;
+      margin-bottom: 10px;
+    }
+    .description {
+      color: #666;
+      margin-bottom: 30px;
+    }
+    .icon-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+    .icon-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    .icon-card canvas {
+      display: block;
+      margin: 0 auto 10px;
+      border-radius: 8px;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+    }
+    .icon-card p {
+      margin: 0;
+      font-size: 14px;
+      color: #666;
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 28px;
+      font-size: 16px;
+      color: #fff;
+      background: #1a73e8;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn:hover {
+      background: #1557b0;
+    }
+    .btn:active {
+      background: #0d47a1;
+    }
+    .btn-individual {
+      padding: 6px 16px;
+      font-size: 13px;
+      margin-top: 8px;
+      background: #5f6368;
+    }
+    .btn-individual:hover {
+      background: #3c4043;
+    }
+    .instructions {
+      margin-top: 30px;
+      padding: 20px;
+      background: #e8f0fe;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #3c4043;
+    }
+    .instructions ol {
+      margin: 0;
+      padding-left: 20px;
+    }
+    .instructions li {
+      margin-bottom: 6px;
+    }
+  </style>
+</head>
+<body>
+  <h1>知视 KnowledgeView - 图标生成器</h1>
+  <p class="description">
+    此工具用于生成 Chrome 扩展所需的 PNG 图标文件。图标设计为蓝色圆角方形背景配白色"知"字。
+    点击"下载全部图标"按钮，将自动下载 icon16.png、icon48.png、icon128.png 三个文件。
+  </p>
+
+  <div id="iconGrid" class="icon-grid"></div>
+
+  <button class="btn" onclick="downloadAll()">下载全部图标</button>
+
+  <div class="instructions">
+    <strong>使用说明：</strong>
+    <ol>
+      <li>点击上方"下载全部图标"按钮，浏览器将自动下载三个 PNG 文件。</li>
+      <li>将下载的 icon16.png、icon48.png、icon128.png 放入扩展的 icons/ 目录。</li>
+      <li>在 manifest.json 中引用这些图标文件。</li>
+      <li>也可以单独点击每个图标下方的"下载此图标"按钮单独下载。</li>
+    </ol>
+  </div>
+
+  <script>
+    // ==================== 图标配置 ====================
+
+    // 需要生成的图标尺寸列表
+    var sizes = [16, 48, 128];
+
+    // 图标颜色配置
+    var colors = {
+      background: '#1a73e8',  // 蓝色背景
+      text: '#ffffff'         // 白色文字
+    };
+
+    // ==================== 图标生成 ====================
+
+    /**
+     * 在 Canvas 上绘制图标
+     * @param {number} size - 图标尺寸（像素）
+     * @returns {HTMLCanvasElement} 绘制好的 Canvas 元素
+     */
+    function generateIcon(size) {
+      var canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      var ctx = canvas.getContext('2d');
+
+      // ---- 绘制圆角方形背景 ----
+      var radius = Math.max(1, size * 0.2); // 圆角半径，确保最小为1
+      ctx.fillStyle = colors.background;
+      ctx.beginPath();
+      // 使用 arcTo 绘制圆角矩形
+      ctx.moveTo(radius, 0);
+      ctx.lineTo(size - radius, 0);
+      ctx.arcTo(size, 0, size, radius, radius);
+      ctx.lineTo(size, size - radius);
+      ctx.arcTo(size, size, size - radius, size, radius);
+      ctx.lineTo(radius, size);
+      ctx.arcTo(0, size, 0, size - radius, radius);
+      ctx.lineTo(0, radius);
+      ctx.arcTo(0, 0, radius, 0, radius);
+      ctx.closePath();
+      ctx.fill();
+
+      // ---- 绘制"知"字 ----
+      ctx.fillStyle = colors.text;
+      // 字体大小为图标尺寸的 65%
+      var fontSize = Math.floor(size * 0.65);
+      ctx.font = 'bold ' + fontSize + 'px "Microsoft YaHei", "PingFang SC", "SimHei", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      // 微调垂直位置，使文字在视觉上居中
+      ctx.fillText('知', size / 2, size / 2 + size * 0.03);
+
+      return canvas;
+    }
+
+    // ==================== 下载功能 ====================
+
+    /**
+     * 将 Canvas 内容下载为 PNG 文件
+     * @param {HTMLCanvasElement} canvas - Canvas 元素
+     * @param {string} filename - 下载文件名
+     */
+    function downloadCanvas(canvas, filename) {
+      canvas.toBlob(function (blob) {
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        // 延迟释放 URL
+        setTimeout(function () {
+          URL.revokeObjectURL(url);
+        }, 100);
+      }, 'image/png');
+    }
+
+    /**
+     * 下载全部图标
+     */
+    function downloadAll() {
+      sizes.forEach(function (size, index) {
+        // 延迟下载，避免浏览器同时下载多个文件时丢失
+        setTimeout(function () {
+          var canvas = generateIcon(size);
+          downloadCanvas(canvas, 'icon' + size + '.png');
+        }, index * 300);
+      });
+    }
+
+    // ==================== 预览渲染 ====================
+
+    /**
+     * 渲染图标预览
+     */
+    function renderPreviews() {
+      var grid = document.getElementById('iconGrid');
+      sizes.forEach(function (size) {
+        var card = document.createElement('div');
+        card.className = 'icon-card';
+
+        // 生成 Canvas
+        var canvas = generateIcon(size);
+        card.appendChild(canvas);
+
+        // 添加文件信息
+        var info = document.createElement('p');
+        info.textContent = 'icon' + size + '.png (' + size + 'x' + size + ')';
+        card.appendChild(info);
+
+        // 添加单独下载按钮
+        var btn = document.createElement('button');
+        btn.className = 'btn btn-individual';
+        btn.textContent = '下载此图标';
+        btn.onclick = function () {
+          downloadCanvas(generateIcon(size), 'icon' + size + '.png');
+        };
+        card.appendChild(btn);
+
+        grid.appendChild(card);
+      });
+    }
+
+    // 页面加载时渲染预览
+    renderPreviews();
+  </script>
+</body>
+</html>

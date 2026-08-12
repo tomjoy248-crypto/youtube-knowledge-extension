@@ -1,0 +1,82 @@
+/**
+ * 知视 KnowledgeView - Content Script 样式
+ *
+ * 侧边栏宿主元素的样式。
+ * MVP 阶段使用 overlay 方式覆盖在页面上方，不调整 YouTube 原有布局。
+ * Shadow DOM 内部的样式由 sidebar.css 控制（注入到 shadow root 中）。
+ */
+
+/* ==================== 侧边栏宿主元素 ==================== */
+
+#kv-sidebar-host {
+  position: fixed !important;
+  top: 0 !important;
+  right: 0 !important;
+  height: 100vh !important;
+  width: 340px !important;
+  z-index: 9999 !important;
+
+  /* 平滑过渡（折叠/展开动画） */
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+
+  /* 确保不被遮挡，且可以接收交互 */
+  pointer-events: auto !important;
+
+  /* 防止内容溢出 */
+  overflow: hidden !important;
+
+  /* 防止影响 YouTube 页面滚动 */
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  background: transparent !important;
+}
+
+/* ==================== 折叠状态 ==================== */
+
+#kv-sidebar-host.kv-collapsed {
+  width: 48px !important;
+}
+
+/* ==================== 全局重置（仅作用于宿主元素内） ==================== */
+
+#kv-sidebar-host * {
+  box-sizing: border-box;
+}
+
+/* ==================== 遮挡防护 ==================== */
+
+/* 确保 YouTube 的弹窗、广告等不会覆盖侧边栏 */
+#kv-sidebar-host {
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* 折叠状态下移除阴影 */
+#kv-sidebar-host.kv-collapsed {
+  box-shadow: none !important;
+}
+
+/* ==================== 响应式适配 ==================== */
+
+/* 在窄屏设备上，侧边栏自适应宽度 */
+@media (max-width: 768px) {
+  #kv-sidebar-host {
+    width: 280px !important;
+  }
+
+  #kv-sidebar-host.kv-collapsed {
+    width: 48px !important;
+  }
+}
+
+/* 超窄屏（手机竖屏），侧边栏占满宽度 */
+@media (max-width: 480px) {
+  #kv-sidebar-host {
+    width: 100vw !important;
+  }
+
+  #kv-sidebar-host.kv-collapsed {
+    width: 48px !important;
+  }
+}
