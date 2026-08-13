@@ -18,7 +18,10 @@
 
 ### 第一步：下载安装包
 
-进入 [Releases 发布页面](https://github.com/tomjoy248-crypto/youtube-knowledge-extension/releases)，下载 `KnowledgeView-v1.0.0.zip`（64KB），然后解压到本地任意位置。
+进入 [Releases 发布页面](https://github.com/tomjoy248-crypto/youtube-knowledge-extension/releases)，下载最新的 `KnowledgeView-v1.0.0.zip`，然后解压到本地任意位置。
+
+> 当前 GitHub Release 已更新为最新补丁包；如果你之前下载过旧包，请重新下载这一版。
+
 
 ### 第二步：加载扩展到 Chrome
 
@@ -52,7 +55,14 @@
 
 > 没有 API Key 也可以先安装扩展浏览界面，但点击「生成」时会报错。`GPT-4o mini` 费用最低，适合测试。
 
-### 第四步：使用扩展
+### 第四步：先做一次最小验证
+
+1. 打开一个 YouTube 视频页，确认右侧出现知识侧边栏
+2. 如果侧边栏为空，先检查扩展是否启用，再刷新视频页
+3. 看到「生成中文知识资料」按钮后，再填写 API Key 做完整生成
+
+
+### 第五步：使用扩展
 
 1. 访问 [youtube.com](https://www.youtube.com)，打开任意一个**有英文字幕**的视频
 2. 页面右侧会自动出现知视侧边栏
@@ -71,7 +81,7 @@
 6. 处理时间取决于视频长度和模型速度，通常 **1-3 分钟**
 7. 处理过程中不要关闭或刷新 YouTube 页面
 
-### 第五步：浏览与导出
+### 第六步：浏览与导出
 
 处理完成后，通过侧边栏顶部 4 个 Tab 浏览结果：
 
