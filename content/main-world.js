@@ -31,6 +31,9 @@
       case 'KV_GET_CAPTION_TRACKS':
         handleGetCaptionTracks();
         break;
+      case 'KV_FETCH_CAPTION_SUBTITLES':
+        handleFetchCaptionSubtitles(message);
+        break;
       case 'KV_SEEK_VIDEO':
         handleSeekVideo(message.time);
         break;
@@ -200,6 +203,115 @@
    * 调用 YouTube 播放器 API 跳转到指定时间
    * @param {number} time - 跳转时间（秒）
    */
+  /**
+   * ?????????????? fmt=json3
+   * @param {string} baseUrl
+   * @returns {string}
+   */
+  function buildCaptionRequestUrl(baseUrl) {
+    if (!baseUrl) {
+      return '';
+    }
+
+    try {
+      var url = new URL(baseUrl, window.location.href);
+      if (!url.searchParams.has('fmt')) {
+        url.searchParams.set('fmt', 'json3');
+      }
+      return url.toString();
+    } catch (e) {
+      if (baseUrl.indexOf('fmt=') === -1) {
+        return baseUrl + (baseUrl.indexOf('?') !== -1 ? '&' : '?') + 'fmt=json3';
+      }
+      return baseUrl;
+    }
+  }
+
+  /**
+   * ? content script ????????
+   * @param {Object} payload
+   */
+  function postCaptionSubtitlesResult(payload) {
+    window.postMessage({
+      type: 'KV_CAPTION_SUBTITLES_RESULT',
+      requestId: payload.requestId || '',
+      text: payload.text || '',
+      url: payload.url || '',
+      status: typeof payload.status === 'number' ? payload.status : 0,
+      contentType: payload.contentType || '',
+      error: payload.error || null
+    }, '*');
+  }
+
+  /**
+   * ????????
+   * @param {Object} message
+   */
+  function handleFetchCaptionSubtitles(message) {
+    var requestId = message && message.requestId ? String(message.requestId) : '';
+    var track = message && message.track ? message.track : null;
+
+    try {
+      if (!track || !track.baseUrl) {
+        throw new Error('?????? baseUrl');
+      }
+
+      var url = buildCaptionRequestUrl(track.baseUrl);
+      if (!url) {
+        throw new Error('??????????');
+      }
+
+      fetch(url, {
+        method: 'GET',
+        credentials: 'include',
+        cache: 'no-store'
+      }).then(function (resp) {
+        var status = resp.status;
+        var contentType = resp.headers.get('content-type') || '';
+        var finalUrl = resp.url || url;
+
+        if (!resp.ok) {
+          throw new Error('???????HTTP ' + status + '??' + (resp.statusText || '?????'));
+        }
+
+        return resp.text().then(function (text) {
+          if (!text) {
+            throw new Error('??????');
+          }
+
+          postCaptionSubtitlesResult({
+            requestId: requestId,
+            text: text,
+            url: finalUrl,
+            status: status,
+            contentType: contentType,
+            error: null
+          });
+        });
+      }).catch(function (err) {
+        console.error('[?? Main World] ????????:', err);
+        postCaptionSubtitlesResult({
+          requestId: requestId,
+          text: '',
+          url: url,
+          status: 0,
+          contentType: '',
+          error: err && err.message ? err.message : '????????'
+        });
+      });
+    } catch (err) {
+      console.error('[?? Main World] ????????:', err);
+      postCaptionSubtitlesResult({
+        requestId: requestId,
+        text: '',
+        url: '',
+        status: 0,
+        contentType: '',
+        error: err && err.message ? err.message : '????????'
+      });
+    }
+  }
+
   function handleSeekVideo(time) {
     try {
       if (typeof time !== 'number' || time < 0) {
