@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "知视 KnowledgeView",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "将YouTube英文长视频自动转化为结构化中文知识卡片、笔记和时间轴摘要",
   "permissions": [
     "storage",

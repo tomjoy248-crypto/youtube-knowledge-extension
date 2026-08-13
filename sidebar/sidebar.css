@@ -421,12 +421,17 @@
 }
 
 .kv-error-msg {
-  text-align: center;
+  text-align: left;
   font-size: 14px;
   color: var(--kv-text-secondary);
   line-height: 1.6;
   margin-bottom: 8px;
-  padding: 0 8px;
+  padding: 12px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: #f8fafc;
+  border: 1px solid var(--kv-border);
+  border-radius: 8px;
 }
 
 /* ========== 结果视图 ========== */

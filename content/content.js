@@ -52,6 +52,40 @@
   var navigationObserver = null;              // MutationObserver 实例
   var initCheckTimer = null;                  // 初始化检查定时器
 
+  function sanitizeErrorMessage(message) {
+    return String(message || '未知错误')
+      .replace(/sk-ant-[A-Za-z0-9_-]{8,}/gi, 'sk-ant-***')
+      .replace(/sk-[A-Za-z0-9_-]{8,}/gi, 'sk-***')
+      .replace(/(Bearer\s+)[A-Za-z0-9._~-]{8,}/gi, '$1***')
+      .slice(0, 600);
+  }
+
+  function buildChunkFailureMessage(chunkResults, settings) {
+    var messages = [];
+    for (var i = 0; i < chunkResults.length; i++) {
+      if (chunkResults[i].status !== 'rejected') {
+        continue;
+      }
+      var reason = chunkResults[i].reason;
+      var message = sanitizeErrorMessage(reason && reason.message ? reason.message : reason);
+      if (messages.indexOf(message) === -1) {
+        messages.push(message);
+      }
+      if (messages.length >= 3) {
+        break;
+      }
+    }
+
+    var requestInfo = LLM.getRequestInfo(settings.model, settings.apiBaseUrl);
+    return [
+      '全部 ' + chunkResults.length + ' 个分块处理失败。',
+      '模型：' + (settings.model || '未填写'),
+      '协议：' + requestInfo.protocol,
+      '请求地址：' + requestInfo.url,
+      '失败原因：' + (messages.length ? messages.join('；') : '接口未返回具体错误')
+    ].join('\n');
+  }
+
   // ============ 页面检测 ============
 
   /**
@@ -725,7 +759,7 @@
       console.log('[知视] LLM 处理完成: 成功 ' + successCount + ' / 失败 ' + failCount);
 
       if (successCount === 0) {
-        throw new Error('所有分块处理均失败，请检查 API 配置');
+        throw new Error(buildChunkFailureMessage(chunkResults, settings));
       }
 
       // ---- 步骤 e：聚合结果 ----
