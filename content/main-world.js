@@ -204,7 +204,7 @@
    * @param {number} time - 跳转时间（秒）
    */
   /**
-   * ?????????????? fmt=json3
+   * 为字幕地址补充 fmt=json3 参数
    * @param {string} baseUrl
    * @returns {string}
    */
@@ -228,7 +228,7 @@
   }
 
   /**
-   * ? content script ????????
+   * 向 content script 返回字幕请求结果
    * @param {Object} payload
    */
   function postCaptionSubtitlesResult(payload) {
@@ -244,7 +244,7 @@
   }
 
   /**
-   * ????????
+   * 处理字幕内容请求
    * @param {Object} message
    */
   function handleFetchCaptionSubtitles(message) {
@@ -253,12 +253,12 @@
 
     try {
       if (!track || !track.baseUrl) {
-        throw new Error('?????? baseUrl');
+        throw new Error('字幕轨道缺少请求地址');
       }
 
       var url = buildCaptionRequestUrl(track.baseUrl);
       if (!url) {
-        throw new Error('??????????');
+        throw new Error('无法生成字幕请求地址');
       }
 
       fetch(url, {
@@ -271,12 +271,12 @@
         var finalUrl = resp.url || url;
 
         if (!resp.ok) {
-          throw new Error('???????HTTP ' + status + '??' + (resp.statusText || '?????'));
+          throw new Error('字幕请求失败（HTTP ' + status + '）：' + (resp.statusText || '未知错误'));
         }
 
         return resp.text().then(function (text) {
           if (!text) {
-            throw new Error('??????');
+            throw new Error('字幕接口返回了空内容');
           }
 
           postCaptionSubtitlesResult({
@@ -289,25 +289,25 @@
           });
         });
       }).catch(function (err) {
-        console.error('[?? Main World] ????????:', err);
+        console.error('[知视 Main World] 获取字幕失败:', err);
         postCaptionSubtitlesResult({
           requestId: requestId,
           text: '',
           url: url,
           status: 0,
           contentType: '',
-          error: err && err.message ? err.message : '????????'
+          error: err && err.message ? err.message : '获取字幕失败'
         });
       });
     } catch (err) {
-      console.error('[?? Main World] ????????:', err);
+      console.error('[知视 Main World] 获取字幕失败:', err);
       postCaptionSubtitlesResult({
         requestId: requestId,
         text: '',
         url: '',
         status: 0,
         contentType: '',
-        error: err && err.message ? err.message : '????????'
+        error: err && err.message ? err.message : '获取字幕失败'
       });
     }
   }

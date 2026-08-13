@@ -28,7 +28,8 @@
     sidebarHost: null,          // 侧边栏宿主元素 (#kv-sidebar-host)
     shadowRoot: null,           // Shadow DOM 根节点
     sidebarReady: false,        // 侧边栏是否已就绪
-    sidebarInitPromise: null,   // ???????????? Promise
+    sidebarInitPromise: null,   // 侧边栏异步初始化 Promise
+    loadedVideoId: null,        // 已完成初始化的视频 ID
     isProcessing: false,        // 是否正在生成知识资料
     processingProgress: 0,      // 处理进度（0-100）
     isCollapsed: false,         // 侧边栏是否折叠
@@ -62,14 +63,38 @@
    * @returns {string|null}
    */
   function getVideoId() {
+    var parsed = SubtitleFetcher.parseYouTubeUrl(window.location.href);
+    return parsed ? parsed.videoId : null;
+  }
+
+  function consumeAutoParseFlag() {
     try {
-      var urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get('v');
-    } catch (e) {
-      // 后备方案：手动解析 URL
-      var match = window.location.href.match(/[?&]v=([^&]+)/);
-      return match ? match[1] : null;
+      var currentUrl = new URL(window.location.href);
+      if (currentUrl.searchParams.get('kv_autorun') !== '1') {
+        return false;
+      }
+
+      currentUrl.searchParams.delete('kv_autorun');
+      window.history.replaceState(window.history.state, '', currentUrl.toString());
+      return true;
+    } catch (error) {
+      return false;
     }
+  }
+
+  function openAndParseUrl(input) {
+    var parsed = SubtitleFetcher.parseYouTubeUrl(input);
+    if (!parsed) {
+      notifySidebar('kv-state-update', {
+        state: 'parseError',
+        data: { message: '地址无效。请粘贴完整的 YouTube 视频链接或 11 位视频 ID。' }
+      });
+      return;
+    }
+
+    var targetUrl = new URL(parsed.url);
+    targetUrl.searchParams.set('kv_autorun', '1');
+    window.location.assign(targetUrl.toString());
   }
 
   /**
@@ -195,6 +220,7 @@
     if (videoId !== state.currentVideoId) {
       console.log('[知视] 检测到新视频:', videoId);
       state.currentVideoId = videoId;
+      state.loadedVideoId = null;
       state.lastVideoRecord = null;
       state.isProcessing = false;
     }
@@ -211,8 +237,17 @@
       await state.sidebarInitPromise;
     }
 
-    // ?????????
-    await loadVideoInfo(videoId);
+    if (state.loadedVideoId === videoId) {
+      return;
+    }
+
+    state.loadedVideoId = videoId;
+    try {
+      await loadVideoInfo(videoId, consumeAutoParseFlag());
+    } catch (error) {
+      state.loadedVideoId = null;
+      throw error;
+    }
   }
 
   /**
@@ -234,8 +269,7 @@
       var shadowRoot = host.attachShadow({ mode: 'open' });
       state.shadowRoot = shadowRoot;
 
-      // ??????? sidebar.js ???????
-      // ????? CSS
+      // 加载侧边栏 CSS
       try {
         var cssResponse = await fetch(chrome.runtime.getURL('sidebar/sidebar.css'));
         var cssText = await cssResponse.text();
@@ -243,25 +277,25 @@
         styleEl.textContent = cssText;
         shadowRoot.appendChild(styleEl);
       } catch (err) {
-        console.error('[??] ?? sidebar.css ??:', err);
+        console.error('[知视] 加载 sidebar.css 失败:', err);
       }
 
-      // ????? HTML ??
+      // 加载侧边栏 HTML
       try {
         var htmlResponse = await fetch(chrome.runtime.getURL('sidebar/sidebar.html'));
         var htmlText = await htmlResponse.text();
 
-        // ??????? HTML
+        // 将 HTML 注入 Shadow DOM
         var container = document.createElement('div');
         container.className = 'kv-sidebar-container';
         container.innerHTML = htmlText;
         shadowRoot.appendChild(container);
       } catch (err) {
-        console.error('[??] ?? sidebar.html ??:', err);
-        // ??????
+        console.error('[知视] 加载 sidebar.html 失败:', err);
+        // 显示加载失败提示
         var errorDiv = document.createElement('div');
         errorDiv.style.cssText = 'padding:20px;color:#d32f2f;font-size:14px;';
-        errorDiv.textContent = '???????????????';
+        errorDiv.textContent = '侧边栏加载失败，请刷新 YouTube 页面后重试。';
         shadowRoot.appendChild(errorDiv);
       }
 
@@ -354,6 +388,10 @@
         startGenerate();
         break;
 
+      case 'parseUrl':
+        openAndParseUrl(data.url);
+        break;
+
       case 'seek':
         // 跳转视频到指定时间
         seekVideo(data.time);
@@ -413,8 +451,9 @@
    * 加载视频信息
    * 包括缓存检测、字幕轨道获取、自动生成检查
    * @param {string} videoId - 视频 ID
+   * @param {boolean} autoParse - 是否由地址输入触发自动生成
    */
-  async function loadVideoInfo(videoId) {
+  async function loadVideoInfo(videoId, autoParse) {
     try {
       // ---- 1. 缓存检测 ----
       var cachedRecord = null;
@@ -463,7 +502,7 @@
         console.warn('[知视] 获取设置失败:', e);
       }
 
-      if (settings && settings.autoGenerate) {
+      if (autoParse || (settings && settings.autoGenerate)) {
         console.log('[知视] 自动生成已开启，开始生成...');
         startGenerate();
       }

@@ -240,6 +240,22 @@
   // ========== 事件绑定 ==========
 
   function bindEvents() {
+    var videoUrlInput = document.getElementById('video-url');
+    var openVideoBtn = document.getElementById('open-video-btn');
+
+    if (openVideoBtn) {
+      openVideoBtn.addEventListener('click', openVideoForParsing);
+    }
+
+    if (videoUrlInput) {
+      videoUrlInput.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          openVideoForParsing();
+        }
+      });
+    }
+
     // 表单元素 ID 列表
     var formElementIds = [
       'llm-model',
@@ -345,6 +361,54 @@
         saveSettings(true);
       });
     }
+  }
+
+  function openVideoForParsing() {
+    var resultEl = document.getElementById('open-video-result');
+    var button = document.getElementById('open-video-btn');
+    var input = document.getElementById('video-url');
+    var value = input ? input.value.trim() : '';
+
+    if (!value) {
+      if (resultEl) {
+        resultEl.textContent = '请先输入 YouTube 视频地址';
+        resultEl.style.color = '#e74c3c';
+      }
+      return;
+    }
+
+    if (button) {
+      button.disabled = true;
+      button.textContent = '正在打开...';
+    }
+
+    chrome.runtime.sendMessage({ action: 'openVideo', data: { url: value } }, function (response) {
+      if (button) {
+        button.disabled = false;
+        button.textContent = '打开并解析';
+      }
+
+      if (chrome.runtime.lastError) {
+        if (resultEl) {
+          resultEl.textContent = '打开失败：' + chrome.runtime.lastError.message;
+          resultEl.style.color = '#e74c3c';
+        }
+        return;
+      }
+
+      if (!response || !response.success) {
+        if (resultEl) {
+          resultEl.textContent = response && response.error ? response.error : '视频地址无效';
+          resultEl.style.color = '#e74c3c';
+        }
+        return;
+      }
+
+      if (resultEl) {
+        resultEl.textContent = '已打开视频，扩展会自动开始解析';
+        resultEl.style.color = '#27ae60';
+      }
+    });
   }
 
   function buildOpenAIUrl(baseUrl) {

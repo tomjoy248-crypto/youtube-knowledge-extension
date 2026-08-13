@@ -1,7 +1,7 @@
 /* ============================================================
  * 知视 KnowledgeView 侧边栏 JavaScript
  *
- * 此脚本通过 content.js 的 ???? 执行，
+ * 此脚本通过 manifest 注入并由 content.js 提供 Shadow Root，
  * shadowRoot 通过 window.__KV_SHADOW_ROOT__ 全局变量传入。
  *
  * 通信机制：
@@ -28,7 +28,7 @@
     return null;
   }
 
-  // ????????? shadow root ????????
+  // 从 content.js 获取 Shadow Root
   function $(sel) {
     var root = getShadowRoot();
     return root ? root.querySelector(sel) : null;
@@ -39,7 +39,7 @@
     return root ? root.querySelectorAll(sel) : [];
   }
 
-  // ========== ???????==========
+  // ========== 页面状态 ==========
   var currentTab = 'summary';  // 当前激活的 Tab
   var currentResult = null;    // 当前结果数据
   var isInitialized = false;   // 是否已初始化
@@ -52,7 +52,7 @@
    * @param {object} data - 附加数据
    */
   function dispatchAction(action, data) {
-    var detail = Object.assign({ action: action }, data || {});
+    var detail = { action: action, data: data || {} };
     var event = new CustomEvent('kv-action', {
       detail: detail,
       bubbles: true,
@@ -725,6 +725,27 @@
    * 绑定所有按钮事件
    */
   function bindEvents() {
+    var urlInput = $('#kv-url-input');
+    var parseUrlBtn = $('#kv-parse-url-btn');
+
+    function submitUrl() {
+      var url = urlInput ? urlInput.value.trim() : '';
+      dispatchAction('parseUrl', { url: url });
+    }
+
+    if (parseUrlBtn) {
+      parseUrlBtn.addEventListener('click', submitUrl);
+    }
+
+    if (urlInput) {
+      urlInput.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          submitUrl();
+        }
+      });
+    }
+
     // 生成按钮
     var generateBtn = $('#kv-generate-btn');
     if (generateBtn) {
@@ -746,6 +767,13 @@
     if (retryBtn) {
       retryBtn.addEventListener('click', function () {
         dispatchAction('generate');
+      });
+    }
+
+    var openSettingsBtn = $('#kv-open-settings-btn');
+    if (openSettingsBtn) {
+      openSettingsBtn.addEventListener('click', function () {
+        dispatchAction('openSettings');
       });
     }
 
@@ -842,6 +870,14 @@
         showView('error');
         break;
 
+      case 'parseError':
+        var parseErrorMsg = $('#kv-error-msg');
+        if (parseErrorMsg) {
+          parseErrorMsg.textContent = payload.message || '请输入有效的 YouTube 视频地址';
+        }
+        showView('error');
+        break;
+
       case 'exported':
         // 导出完成，显示简要提示
         var statsEl = $('#kv-result-stats');
@@ -884,22 +920,22 @@
     shadowRoot = readyRoot;
     isInitialized = true;
 
-    // ?????????
+    // 绑定交互事件
     bindEvents();
 
-    // ?????? content.js ???????????
+    // 监听 content.js 派发的状态更新
     document.addEventListener('kv-state-update', function (e) {
       var data = e.detail || {};
       handleStateUpdate(data);
     });
 
-    // ????????????
+    // 默认展示初始页
     showView('initial');
 
     window.__KV_SIDEBAR_READY__ = true;
     window.dispatchEvent(new CustomEvent('kv-sidebar-ready'));
 
-    console.log('[?? Sidebar] ?????');
+    console.log('[知视 Sidebar] 初始化完成');
     return true;
   }
 
@@ -921,7 +957,7 @@
 
   bootstrapSidebar();
 
-  // ========== ?????????==========
+  // ========== 启动侧边栏 ==========
   window.__KV_SIDEBAR__ = {
     showView: showView,
     updateVideoInfo: updateVideoInfo,

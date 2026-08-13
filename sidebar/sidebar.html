@@ -8,6 +8,21 @@
     <button class="kv-collapse-btn" title="折叠">▶</button>
   </div>
 
+  <div class="kv-parse-panel">
+    <div class="kv-parse-row">
+      <input
+        type="text"
+        id="kv-url-input"
+        class="kv-parse-input"
+        placeholder="粘贴 YouTube 视频链接，例如 https://www.youtube.com/watch?v=..."
+        autocomplete="off"
+        spellcheck="false"
+      >
+      <button class="kv-btn kv-btn-secondary kv-parse-btn" id="kv-parse-url-btn">打开并解析</button>
+    </div>
+    <p class="kv-hint kv-parse-hint">支持 watch、shorts、embed、youtu.be 链接</p>
+  </div>
+
   <!-- 内容区，根据状态切换不同视图 -->
   <div class="kv-body" id="kv-body">
     <!-- 视图1：初始状态 - 视频信息 + 生成按钮 -->
@@ -32,7 +47,10 @@
     <div class="kv-view kv-view-error" id="kv-view-error" style="display:none;">
       <div class="kv-error-icon">⚠</div>
       <div class="kv-error-msg" id="kv-error-msg"></div>
-      <button class="kv-btn kv-btn-primary" id="kv-retry-btn">重试</button>
+      <div class="kv-error-actions">
+        <button class="kv-btn kv-btn-primary" id="kv-retry-btn">重试当前视频</button>
+        <button class="kv-btn kv-btn-secondary" id="kv-open-settings-btn">打开设置</button>
+      </div>
     </div>
 
     <!-- 视图4：结果展示 - Tab切换 -->

@@ -16,6 +16,19 @@
     </header>
 
     <main class="settings-main">
+      <section class="settings-section">
+        <h2 class="section-title">视频解析</h2>
+        <div class="form-group">
+          <label class="form-label" for="video-url">YouTube 视频地址</label>
+          <input type="text" id="video-url" class="form-input" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off" spellcheck="false">
+          <p class="form-hint">支持 watch、shorts、embed、youtu.be 链接，也可以直接输入 11 位视频 ID。</p>
+        </div>
+        <div class="form-group">
+          <button class="btn btn-primary" id="open-video-btn">打开并解析</button>
+          <span id="open-video-result" class="form-hint" style="margin-left: 12px;"></span>
+        </div>
+      </section>
+
       <!-- AI模型配置区 -->
       <section class="settings-section">
         <h2 class="section-title">AI 模型配置</h2>
