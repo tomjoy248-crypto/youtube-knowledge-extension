@@ -21,23 +21,12 @@
         <h2 class="section-title">AI 模型配置</h2>
         <div class="form-group">
           <label class="form-label" for="llm-model">LLM 模型</label>
-          <input type="text" id="llm-model" class="form-input" list="llm-model-options" placeholder="请输入模型名，例如 gpt-5.4-mini" autocomplete="off">
-          <datalist id="llm-model-options">
-            <option value="gpt-5.4-mini"></option>
-            <option value="gpt-5.6-luna"></option>
-            <option value="gpt-5.4"></option>
-            <option value="gpt-5.5"></option>
-            <option value="gpt-4o-mini"></option>
-            <option value="gpt-4o"></option>
-            <option value="o3-mini"></option>
-            <option value="o4-mini"></option>
-            <option value="claude-haiku-4-5"></option>
-            <option value="claude-haiku-4-5-20251001"></option>
-            <option value="claude-sonnet-5"></option>
-            <option value="claude-sonnet-4-6"></option>
-            <option value="claude-opus-5"></option>
-          </datalist>
-          <p class="form-hint">这里可以直接手填任意模型 ID，复制中转平台显示的名称即可，不用受下拉列表限制。</p>
+          <input type="text" id="llm-model" class="form-input" placeholder="请输入模型名，例如 gpt-5.4-mini" autocomplete="off">
+          <p class="form-hint">这里可以直接手填任意模型 ID；下面的示例只是快速填入，不限制你能用的模型。</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="llm-model-preset">常见模型示例</label>
+          <select id="llm-model-preset" class="form-select"></select>
         </div>
         <div class="form-group">
           <label class="form-label" for="api-key">API Key</label>

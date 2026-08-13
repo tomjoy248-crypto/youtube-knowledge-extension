@@ -35,12 +35,47 @@
   // 保存提示定时器
   var toastTimer = null;
 
+  var MODEL_PRESETS = [
+    { label: '选择一个示例...', value: '' },
+    { label: 'gpt-5.4-mini', value: 'gpt-5.4-mini' },
+    { label: 'gpt-5.6-luna', value: 'gpt-5.6-luna' },
+    { label: 'gpt-5.4', value: 'gpt-5.4' },
+    { label: 'gpt-5.5', value: 'gpt-5.5' },
+    { label: 'gpt-4o-mini', value: 'gpt-4o-mini' },
+    { label: 'gpt-4o', value: 'gpt-4o' },
+    { label: 'o3-mini', value: 'o3-mini' },
+    { label: 'o4-mini', value: 'o4-mini' },
+    { label: 'claude-haiku-4-5', value: 'claude-haiku-4-5' },
+    { label: 'claude-haiku-4-5-20251001', value: 'claude-haiku-4-5-20251001' },
+    { label: 'claude-sonnet-5', value: 'claude-sonnet-5' },
+    { label: 'claude-sonnet-4-6', value: 'claude-sonnet-4-6' },
+    { label: 'claude-opus-5', value: 'claude-opus-5' }
+  ];
+
   // ========== 初始化 ==========
 
   function init() {
+    initModelPresetOptions();
     loadSettings();
     bindEvents();
     updateCacheCount();
+  }
+
+  function initModelPresetOptions() {
+    var presetSelect = document.getElementById('llm-model-preset');
+    if (!presetSelect) {
+      return;
+    }
+
+    presetSelect.innerHTML = '';
+
+    for (var i = 0; i < MODEL_PRESETS.length; i++) {
+      var preset = MODEL_PRESETS[i];
+      var option = document.createElement('option');
+      option.value = preset.value;
+      option.textContent = preset.label;
+      presetSelect.appendChild(option);
+    }
   }
 
   // ========== 加载设置 ==========
@@ -55,6 +90,7 @@
 
       // LLM 模型选择
       setVal('llm-model', settings.model);
+      syncPresetSelect(settings.model);
 
       // API Key
       setVal('api-key', settings.apiKey || '');
@@ -246,6 +282,32 @@
     if (clearBtn) {
       clearBtn.addEventListener('click', clearCache);
     }
+
+    var modelInput = document.getElementById('llm-model');
+    if (modelInput) {
+      var modelTimer = null;
+      modelInput.addEventListener('input', function () {
+        syncPresetSelect(modelInput.value);
+        if (modelTimer) {
+          clearTimeout(modelTimer);
+        }
+        modelTimer = setTimeout(function () {
+          saveSettings(true);
+        }, 800);
+      });
+    }
+
+    var presetSelect = document.getElementById('llm-model-preset');
+    if (presetSelect) {
+      presetSelect.addEventListener('change', function () {
+        var selectedModel = presetSelect.value;
+        if (!selectedModel) {
+          return;
+        }
+        setVal('llm-model', selectedModel);
+        saveSettings(true);
+      });
+    }
   }
 
   function buildOpenAIUrl(baseUrl) {
@@ -416,6 +478,26 @@
     if (el) {
       el.checked = value !== false;
     }
+  }
+
+  function syncPresetSelect(modelValue) {
+    var presetSelect = document.getElementById('llm-model-preset');
+    if (!presetSelect) {
+      return;
+    }
+
+    var normalizedValue = (modelValue || '').trim();
+    var hasMatch = false;
+
+    for (var i = 0; i < presetSelect.options.length; i++) {
+      var option = presetSelect.options[i];
+      if (option.value === normalizedValue) {
+        hasMatch = true;
+        break;
+      }
+    }
+
+    presetSelect.value = hasMatch ? normalizedValue : '';
   }
 
   // ========== 启动 ==========
