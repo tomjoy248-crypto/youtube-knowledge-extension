@@ -30,6 +30,7 @@
     sidebarReady: false,        // 侧边栏是否已就绪
     sidebarInitPromise: null,   // 侧边栏异步初始化 Promise
     loadedVideoId: null,        // 已完成初始化的视频 ID
+    pendingAutoParseVideoId: null, // 等待自动解析的视频 ID
     isProcessing: false,        // 是否正在生成知识资料
     processingProgress: 0,      // 处理进度（0-100）
     isCollapsed: false,         // 侧边栏是否折叠
@@ -44,6 +45,9 @@
   var VIDEO_URL_PATTERN = /youtube\.com\/watch/; // 视频页 URL 匹配
   var MAX_INIT_RETRY = 10;                    // 最大初始化重试次数
   var NAVIGATION_DELAY = 500;                 // 导航检测延迟（毫秒）
+  var RECORD_SCHEMA_VERSION = 2;              // 缓存结构版本
+  var PENDING_AUTO_PARSE_KEY = 'kv_pending_auto_parse';
+  var AUTO_PARSE_MAX_AGE = 10 * 60 * 1000;
 
   var navigationObserver = null;              // MutationObserver 实例
   var initCheckTimer = null;                  // 初始化检查定时器
@@ -67,22 +71,44 @@
     return parsed ? parsed.videoId : null;
   }
 
-  function consumeAutoParseFlag() {
+  function captureAutoParseFlag(videoId) {
     try {
       var currentUrl = new URL(window.location.href);
       if (currentUrl.searchParams.get('kv_autorun') !== '1') {
-        return false;
+        return;
       }
 
+      state.pendingAutoParseVideoId = videoId;
       currentUrl.searchParams.delete('kv_autorun');
       window.history.replaceState(window.history.state, '', currentUrl.toString());
-      return true;
     } catch (error) {
-      return false;
+      console.warn('[知视] 自动解析参数读取失败:', error);
     }
   }
 
-  function openAndParseUrl(input) {
+  async function takeAutoParseFlag(videoId) {
+    if (state.pendingAutoParseVideoId !== videoId) {
+      try {
+        var stored = await chrome.storage.local.get(PENDING_AUTO_PARSE_KEY);
+        var pending = stored[PENDING_AUTO_PARSE_KEY];
+        var isCurrent = pending && pending.videoId === videoId;
+        var isFresh = isCurrent && Date.now() - Number(pending.createdAt || 0) <= AUTO_PARSE_MAX_AGE;
+        if (!isFresh) {
+          return false;
+        }
+        await chrome.storage.local.remove(PENDING_AUTO_PARSE_KEY);
+        return true;
+      } catch (error) {
+        console.warn('[知视] 自动解析任务读取失败:', error);
+        return false;
+      }
+    }
+
+    state.pendingAutoParseVideoId = null;
+    return true;
+  }
+
+  async function openAndParseUrl(input) {
     var parsed = SubtitleFetcher.parseYouTubeUrl(input);
     if (!parsed) {
       notifySidebar('kv-state-update', {
@@ -92,9 +118,20 @@
       return;
     }
 
-    var targetUrl = new URL(parsed.url);
-    targetUrl.searchParams.set('kv_autorun', '1');
-    window.location.assign(targetUrl.toString());
+    try {
+      var pendingPayload = {};
+      pendingPayload[PENDING_AUTO_PARSE_KEY] = {
+        videoId: parsed.videoId,
+        createdAt: Date.now()
+      };
+      await chrome.storage.local.set(pendingPayload);
+      window.location.assign(parsed.url);
+    } catch (error) {
+      notifySidebar('kv-state-update', {
+        state: 'parseError',
+        data: { message: '无法启动解析：' + (error.message || '扩展存储不可用') }
+      });
+    }
   }
 
   /**
@@ -215,6 +252,7 @@
 
     // 重置重试计数
     state.initRetryCount = 0;
+    captureAutoParseFlag(videoId);
 
     // 如果视频ID变化，重置状态
     if (videoId !== state.currentVideoId) {
@@ -238,12 +276,15 @@
     }
 
     if (state.loadedVideoId === videoId) {
+      if (await takeAutoParseFlag(videoId) && !state.isProcessing) {
+        await loadVideoInfo(videoId, true);
+      }
       return;
     }
 
     state.loadedVideoId = videoId;
     try {
-      await loadVideoInfo(videoId, consumeAutoParseFlag());
+      await loadVideoInfo(videoId, await takeAutoParseFlag(videoId));
     } catch (error) {
       state.loadedVideoId = null;
       throw error;
@@ -463,7 +504,14 @@
         console.warn('[知视] 缓存读取失败:', e);
       }
 
-      if (cachedRecord) {
+      var hasValidTimeline = cachedRecord && Array.isArray(cachedRecord.timeline) && (
+        cachedRecord.timeline.length <= 1 || cachedRecord.timeline.some(function (item, index) {
+          return index > 0 && item && Number(item.seconds) > 0;
+        })
+      );
+      var cacheIsCurrent = cachedRecord && cachedRecord.schemaVersion === RECORD_SCHEMA_VERSION && hasValidTimeline;
+
+      if (cacheIsCurrent) {
         // 已有缓存，直接展示
         console.log('[知视] 发现缓存记录，直接展示');
         state.lastVideoRecord = cachedRecord;
@@ -474,7 +522,36 @@
         return;
       }
 
-      // ---- 2. 获取字幕轨道信息 ----
+      if (cachedRecord) {
+        console.log('[知视] 检测到旧版时间轴缓存，将重新生成');
+      }
+
+      // ---- 2. 获取设置并判断是否自动生成 ----
+      var settings = null;
+      try {
+        settings = await KVStore.getSettings();
+      } catch (e) {
+        console.warn('[知视] 获取设置失败:', e);
+      }
+
+      var shouldAutoGenerate = autoParse || (settings && settings.autoGenerate);
+      if (shouldAutoGenerate) {
+        notifySidebar('kv-state-update', {
+          state: 'videoInfo',
+          data: {
+            videoId: videoId,
+            title: getVideoTitle(),
+            url: window.location.href,
+            captionTracks: [],
+            hasSubtitles: true
+          }
+        });
+        console.log('[知视] 自动生成已开启，开始生成...');
+        await startGenerate();
+        return;
+      }
+
+      // ---- 3. 获取字幕轨道信息 ----
       var tracks = [];
       try {
         tracks = await SubtitleFetcher.requestCaptionTracks();
@@ -482,7 +559,7 @@
         console.warn('[知视] 获取字幕轨道失败:', e);
       }
 
-      // ---- 3. 在侧边栏展示视频信息卡 ----
+      // ---- 4. 在侧边栏展示视频信息卡 ----
       notifySidebar('kv-state-update', {
         state: 'videoInfo',
         data: {
@@ -494,18 +571,6 @@
         }
       });
 
-      // ---- 4. 检查是否需要自动生成 ----
-      var settings = null;
-      try {
-        settings = await KVStore.getSettings();
-      } catch (e) {
-        console.warn('[知视] 获取设置失败:', e);
-      }
-
-      if (autoParse || (settings && settings.autoGenerate)) {
-        console.log('[知视] 自动生成已开启，开始生成...');
-        startGenerate();
-      }
     } catch (err) {
       console.error('[知视] 加载视频信息失败:', err);
       notifySidebar('kv-state-update', {
@@ -625,7 +690,10 @@
                 message: '正在处理分块 ' + completedCount + '/' + totalChunks + '...'
               }
             });
-            return result;
+            return Object.assign({}, result, {
+              startTime: typeof chunk.startTime === 'number' ? chunk.startTime : 0,
+              chunkIndex: index
+            });
           },
           function (error) {
             // 处理失败，也计入完成数（Promise.allSettled 不会因失败而中断）
@@ -699,7 +767,8 @@
         createdAt: Date.now(),
         chunkCount: chunks.length,
         successCount: successCount,
-        failCount: failCount
+        failCount: failCount,
+        schemaVersion: RECORD_SCHEMA_VERSION
       };
 
       try {

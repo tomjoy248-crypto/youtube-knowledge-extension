@@ -54,6 +54,8 @@ chrome.action.onClicked.addListener(function (tab) {
 
 // ============ 消息监听 ============
 
+var PENDING_AUTO_PARSE_KEY = 'kv_pending_auto_parse';
+
 /**
  * 监听来自 content script 的消息
  * MV3 中 Service Worker 可能在消息处理期间被唤醒，所有处理应尽快完成
@@ -172,7 +174,12 @@ async function handleOpenVideo(input) {
   }
 
   var targetUrl = new URL(canonicalUrl);
-  targetUrl.searchParams.set('kv_autorun', '1');
+  var pendingPayload = {};
+  pendingPayload[PENDING_AUTO_PARSE_KEY] = {
+    videoId: targetUrl.searchParams.get('v'),
+    createdAt: Date.now()
+  };
+  await chrome.storage.local.set(pendingPayload);
   var tab = await chrome.tabs.create({ url: targetUrl.toString(), active: true });
   return { tabId: tab.id, url: targetUrl.toString() };
 }
