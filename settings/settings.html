@@ -22,14 +22,34 @@
         <div class="form-group">
           <label class="form-label" for="llm-model">LLM 模型</label>
           <select id="llm-model" class="form-select">
-            <option value="claude-3-5-sonnet">Claude 3.5 Sonnet</option>
-            <option value="claude-3-5-sonnet-latest">Claude 3.5 Sonnet (Latest)</option>
-            <option value="claude-3-5-haiku">Claude 3.5 Haiku</option>
-            <option value="claude-3-5-haiku-latest">Claude 3.5 Haiku (Latest)</option>
-            <option value="gpt-4o">GPT-4o</option>
-            <option value="gpt-4o-mini">GPT-4o mini</option>
-            <option value="gpt-4-turbo">GPT-4 Turbo</option>
-            <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+            <optgroup label="Claude 最新">
+              <option value="claude-fable-5">Claude Fable 5（最新旗舰）</option>
+              <option value="claude-opus-5">Claude Opus 5</option>
+              <option value="claude-sonnet-5">Claude Sonnet 5</option>
+              <option value="claude-haiku-4-5">Claude Haiku 4.5（高性价比）</option>
+            </optgroup>
+            <optgroup label="Claude 3.5（旧版）">
+              <option value="claude-3-5-sonnet">Claude 3.5 Sonnet</option>
+              <option value="claude-3-5-haiku">Claude 3.5 Haiku</option>
+            </optgroup>
+            <optgroup label="GPT-5.6（最新）">
+              <option value="gpt-5.6-sol">GPT-5.6 Sol（旗舰）</option>
+              <option value="gpt-5.6-terra">GPT-5.6 Terra（均衡）</option>
+              <option value="gpt-5.6-luna">GPT-5.6 Luna（高性价比）</option>
+            </optgroup>
+            <optgroup label="GPT-5.5">
+              <option value="gpt-5.5">GPT-5.5</option>
+              <option value="gpt-5.5-pro">GPT-5.5 Pro</option>
+            </optgroup>
+            <optgroup label="GPT-5.4">
+              <option value="gpt-5.4">GPT-5.4</option>
+              <option value="gpt-5.4-mini">GPT-5.4 mini（低成本推荐）</option>
+              <option value="gpt-5.4-nano">GPT-5.4 nano（最低成本）</option>
+            </optgroup>
+            <optgroup label="GPT-4o（旧版）">
+              <option value="gpt-4o">GPT-4o</option>
+              <option value="gpt-4o-mini">GPT-4o mini</option>
+            </optgroup>
           </select>
         </div>
         <div class="form-group">

@@ -24,7 +24,7 @@
   // ========== 默认设置（与 storage.js getDefaultSettings 一致） ==========
   var DEFAULT_SETTINGS = {
     apiKey: '',
-    model: 'claude-3-5-sonnet',
+    model: 'gpt-5.4-nano',
     translateStyle: 'readable',      // readable=通俗易读 / academic=学术严谨 / casual=口语化
     bilingualSubtitles: true,
     autoGenerate: false,
