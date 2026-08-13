@@ -25,7 +25,7 @@
   var DEFAULT_SETTINGS = {
     apiKey: '',
     model: 'gpt-4o-mini',
-    apiBaseUrl: '',                   // 自定义 API 中转地址（国内用户必填）
+    apiBaseUrl: '',                   // 自定义 API 中转地址（可选）
     translateStyle: 'readable',      // readable=通俗易读 / academic=学术严谨 / casual=口语化
     bilingualSubtitles: true,
     autoGenerate: false,
@@ -52,10 +52,18 @@
     { label: 'claude-opus-5', value: 'claude-opus-5' }
   ];
 
+  var API_BASE_URL_PRESETS = [
+    { label: '选择一个模板...', value: '' },
+    { label: 'OpenAI 兼容根地址（https://api.xxx.com）', value: 'https://api.xxx.com' },
+    { label: 'OpenAI 兼容 /v1（https://api.xxx.com/v1）', value: 'https://api.xxx.com/v1' },
+    { label: 'OpenAI 兼容完整接口（https://api.xxx.com/v1/chat/completions）', value: 'https://api.xxx.com/v1/chat/completions' }
+  ];
+
   // ========== 初始化 ==========
 
   function init() {
     initModelPresetOptions();
+    initApiBaseUrlPresetOptions();
     loadSettings();
     bindEvents();
     updateCacheCount();
@@ -71,6 +79,23 @@
 
     for (var i = 0; i < MODEL_PRESETS.length; i++) {
       var preset = MODEL_PRESETS[i];
+      var option = document.createElement('option');
+      option.value = preset.value;
+      option.textContent = preset.label;
+      presetSelect.appendChild(option);
+    }
+  }
+
+  function initApiBaseUrlPresetOptions() {
+    var presetSelect = document.getElementById('api-base-url-preset');
+    if (!presetSelect) {
+      return;
+    }
+
+    presetSelect.innerHTML = '';
+
+    for (var i = 0; i < API_BASE_URL_PRESETS.length; i++) {
+      var preset = API_BASE_URL_PRESETS[i];
       var option = document.createElement('option');
       option.value = preset.value;
       option.textContent = preset.label;
@@ -97,6 +122,7 @@
 
       // API Base URL
       setVal('api-base-url', settings.apiBaseUrl || '');
+      syncApiBaseUrlPreset(settings.apiBaseUrl);
 
       // 翻译风格
       setVal('translate-style', settings.translateStyle);
@@ -254,12 +280,23 @@
     if (apiUrlInput) {
       var apiUrlTimer = null;
       apiUrlInput.addEventListener('input', function () {
+        syncApiBaseUrlPreset(apiUrlInput.value);
         if (apiUrlTimer) {
           clearTimeout(apiUrlTimer);
         }
         apiUrlTimer = setTimeout(function () {
           saveSettings(true);
         }, 800);
+      });
+    }
+
+    var apiBasePreset = document.getElementById('api-base-url-preset');
+    if (apiBasePreset) {
+      apiBasePreset.addEventListener('change', function () {
+        var selectedUrl = apiBasePreset.value;
+        setVal('api-base-url', selectedUrl);
+        syncApiBaseUrlPreset(selectedUrl);
+        saveSettings(true);
       });
     }
 
@@ -498,6 +535,30 @@
     }
 
     presetSelect.value = hasMatch ? normalizedValue : '';
+  }
+
+  function syncApiBaseUrlPreset(apiBaseUrl) {
+    var presetSelect = document.getElementById('api-base-url-preset');
+    if (!presetSelect) {
+      return;
+    }
+
+    var normalizedValue = normalizeUrlValue(apiBaseUrl);
+    var hasMatch = false;
+
+    for (var i = 0; i < presetSelect.options.length; i++) {
+      var option = presetSelect.options[i];
+      if (normalizeUrlValue(option.value) === normalizedValue) {
+        hasMatch = true;
+        break;
+      }
+    }
+
+    presetSelect.value = hasMatch ? normalizedValue : '';
+  }
+
+  function normalizeUrlValue(value) {
+    return (value || '').trim().replace(/\/+$/, '');
   }
 
   // ========== 启动 ==========
