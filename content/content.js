@@ -571,7 +571,7 @@
 
       // 为每个分块创建 LLM 处理 Promise
       var chunkPromises = chunks.map(function (chunk, index) {
-        return LLM.processChunk(settings.apiKey, settings.model, chunk.text, settings.translateStyle).then(
+        return LLM.processChunk(settings.apiKey, settings.model, chunk.text, settings.translateStyle, settings.apiBaseUrl).then(
           function (result) {
             // 处理成功，更新进度
             completedCount++;

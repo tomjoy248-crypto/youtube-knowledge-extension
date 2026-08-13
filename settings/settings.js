@@ -25,6 +25,7 @@
   var DEFAULT_SETTINGS = {
     apiKey: '',
     model: 'gpt-5.4-nano',
+    apiBaseUrl: '',                   // 自定义 API 中转地址（国内用户必填）
     translateStyle: 'readable',      // readable=通俗易读 / academic=学术严谨 / casual=口语化
     bilingualSubtitles: true,
     autoGenerate: false,
@@ -58,6 +59,9 @@
       // API Key
       setVal('api-key', settings.apiKey || '');
 
+      // API Base URL
+      setVal('api-base-url', settings.apiBaseUrl || '');
+
       // 翻译风格
       setVal('translate-style', settings.translateStyle);
 
@@ -82,6 +86,7 @@
     var settings = {
       apiKey: getVal('api-key', ''),
       model: getVal('llm-model', DEFAULT_SETTINGS.model),
+      apiBaseUrl: getVal('api-base-url', ''),
       translateStyle: getVal('translate-style', DEFAULT_SETTINGS.translateStyle),
       bilingualSubtitles: getChecked('bilingual-subtitles', true),
       autoGenerate: getChecked('auto-generate', false),
@@ -177,6 +182,7 @@
     var formElementIds = [
       'llm-model',
       'api-key',
+      'api-base-url',
       'translate-style',
       'bilingual-subtitles',
       'auto-generate',
@@ -201,11 +207,30 @@
         if (apiKeyTimer) {
           clearTimeout(apiKeyTimer);
         }
-        // 输入停止 800ms 后自动保存
         apiKeyTimer = setTimeout(function () {
           saveSettings(true);
         }, 800);
       });
+    }
+
+    // API Base URL 输入框 - 同样实时保存
+    var apiUrlInput = document.getElementById('api-base-url');
+    if (apiUrlInput) {
+      var apiUrlTimer = null;
+      apiUrlInput.addEventListener('input', function () {
+        if (apiUrlTimer) {
+          clearTimeout(apiUrlTimer);
+        }
+        apiUrlTimer = setTimeout(function () {
+          saveSettings(true);
+        }, 800);
+      });
+    }
+
+    // 测试连接按钮
+    var testBtn = document.getElementById('test-connection-btn');
+    if (testBtn) {
+      testBtn.addEventListener('click', testConnection);
     }
 
     // 保存按钮
@@ -221,6 +246,108 @@
     if (clearBtn) {
       clearBtn.addEventListener('click', clearCache);
     }
+  }
+
+  // ========== 测试连接 ==========
+
+  function testConnection() {
+    var resultEl = document.getElementById('test-result');
+    var btn = document.getElementById('test-connection-btn');
+    var apiKey = getVal('api-key', '');
+    var model = getVal('llm-model', 'gpt-4o-mini');
+    var baseUrl = getVal('api-base-url', '').trim();
+
+    if (!apiKey) {
+      if (resultEl) {
+        resultEl.textContent = '请先填写 API Key';
+        resultEl.style.color = '#e74c3c';
+      }
+      return;
+    }
+
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = '测试中...';
+    }
+    if (resultEl) {
+      resultEl.textContent = '正在连接...';
+      resultEl.style.color = '#666';
+    }
+
+    // 构建测试请求
+    var isClaude = model.indexOf('claude') === 0;
+    var testUrl, headers, body;
+
+    if (isClaude) {
+      var claudeBase = baseUrl || 'https://api.anthropic.com';
+      testUrl = claudeBase.replace(/\/+$/, '') + '/v1/messages';
+      headers = {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json'
+      };
+      body = JSON.stringify({
+        model: model,
+        max_tokens: 10,
+        messages: [{ role: 'user', content: 'Hi' }]
+      });
+    } else {
+      var openaiBase = baseUrl || 'https://api.openai.com';
+      var trimmedOpenai = openaiBase.replace(/\/+$/, '');
+      if (trimmedOpenai.indexOf('/v1') === trimmedOpenai.length - 3) {
+        testUrl = trimmedOpenai + '/chat/completions';
+      } else {
+        testUrl = trimmedOpenai + '/v1/chat/completions';
+      }
+      headers = {
+        'Authorization': 'Bearer ' + apiKey,
+        'content-type': 'application/json'
+      };
+      body = JSON.stringify({
+        model: model,
+        max_tokens: 10,
+        messages: [{ role: 'user', content: 'Hi' }]
+      });
+    }
+
+    fetch(testUrl, {
+      method: 'POST',
+      headers: headers,
+      body: body
+    }).then(function (resp) {
+      return resp.text().then(function (text) {
+        if (resp.ok) {
+          if (resultEl) {
+            resultEl.textContent = '连接成功！模型 ' + model + ' 可正常使用';
+            resultEl.style.color = '#27ae60';
+          }
+        } else {
+          var msg = '';
+          try {
+            var parsed = JSON.parse(text);
+            if (parsed.error && parsed.error.message) {
+              msg = parsed.error.message;
+            }
+          } catch (e) {
+            msg = text.slice(0, 200);
+          }
+          if (resultEl) {
+            resultEl.textContent = '连接失败（' + resp.status + '）：' + msg;
+            resultEl.style.color = '#e74c3c';
+          }
+        }
+      });
+    }).catch(function (err) {
+      if (resultEl) {
+        resultEl.textContent = '网络错误：' + (err.message || '无法连接') + '。请检查 API 地址是否正确。';
+        resultEl.style.color = '#e74c3c';
+      }
+    }).finally(function () {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = '测试连接';
+      }
+    });
   }
 
   // ========== 辅助函数 ==========

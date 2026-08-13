@@ -12,7 +12,8 @@
   "host_permissions": [
     "*://*.youtube.com/*",
     "*://api.anthropic.com/*",
-    "*://api.openai.com/*"
+    "*://api.openai.com/*",
+    "https://*/*"
   ],
   "background": {
     "service_worker": "background.js"
