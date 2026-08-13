@@ -1,7 +1,7 @@
 /* ============================================================
  * 知视 KnowledgeView 侧边栏 JavaScript
  *
- * 此脚本通过 content.js 的 new Function() 执行，
+ * 此脚本通过 content.js 的 ???? 执行，
  * shadowRoot 通过 window.__KV_SHADOW_ROOT__ 全局变量传入。
  *
  * 通信机制：
@@ -14,20 +14,32 @@
 
   // ========== 获取 Shadow Root ==========
   // content.js 在执行本脚本前设置了 window.__KV_SHADOW_ROOT__
-  var shadowRoot = (typeof window.__KV_SHADOW_ROOT__ !== 'undefined' && window.__KV_SHADOW_ROOT__)
-    ? window.__KV_SHADOW_ROOT__
-    : document;
+  var shadowRoot = null;
 
-  // 辅助函数：在 shadow root 内查询元素
+  function getShadowRoot() {
+    if (shadowRoot && typeof shadowRoot.querySelector === 'function') {
+      return shadowRoot;
+    }
+
+    if (typeof window.__KV_SHADOW_ROOT__ !== 'undefined' && window.__KV_SHADOW_ROOT__ && typeof window.__KV_SHADOW_ROOT__.querySelector === 'function') {
+      return window.__KV_SHADOW_ROOT__;
+    }
+
+    return null;
+  }
+
+  // ????????? shadow root ????????
   function $(sel) {
-    return shadowRoot.querySelector(sel);
+    var root = getShadowRoot();
+    return root ? root.querySelector(sel) : null;
   }
 
   function $$(sel) {
-    return shadowRoot.querySelectorAll(sel);
+    var root = getShadowRoot();
+    return root ? root.querySelectorAll(sel) : [];
   }
 
-  // ========== 状态变量 ==========
+  // ========== ???????==========
   var currentTab = 'summary';  // 当前激活的 Tab
   var currentResult = null;    // 当前结果数据
   var isInitialized = false;   // 是否已初始化
@@ -862,32 +874,54 @@
   // ========== 初始化 ==========
 
   function init() {
-    if (isInitialized) return;
+    if (isInitialized) return false;
+
+    var readyRoot = getShadowRoot();
+    if (!readyRoot) {
+      return false;
+    }
+
+    shadowRoot = readyRoot;
     isInitialized = true;
 
-    // 绑定按钮事件
+    // ?????????
     bindEvents();
 
-    // 监听来自 content.js 的状态更新事件
+    // ?????? content.js ???????????
     document.addEventListener('kv-state-update', function (e) {
       var data = e.detail || {};
       handleStateUpdate(data);
     });
 
-    // 默认显示初始视图
+    // ????????????
     showView('initial');
 
-    console.log('[知视 Sidebar] 初始化完成');
+    window.__KV_SIDEBAR_READY__ = true;
+    window.dispatchEvent(new CustomEvent('kv-sidebar-ready'));
+
+    console.log('[?? Sidebar] ?????');
+    return true;
   }
 
-  // DOM 就绪后初始化
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
+  function bootstrapSidebar() {
+    window.addEventListener('kv-shadow-root-ready', function (event) {
+      var detail = event && event.detail ? event.detail : {};
+      if (detail.shadowRoot) {
+        shadowRoot = detail.shadowRoot;
+        window.__KV_SHADOW_ROOT__ = detail.shadowRoot;
+      }
+
+      init();
+    });
+
+    if (getShadowRoot()) {
+      init();
+    }
   }
 
-  // ========== 暴露接口（供调试） ==========
+  bootstrapSidebar();
+
+  // ========== ?????????==========
   window.__KV_SIDEBAR__ = {
     showView: showView,
     updateVideoInfo: updateVideoInfo,

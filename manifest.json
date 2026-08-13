@@ -20,21 +20,30 @@
   },
   "content_scripts": [
     {
-      "matches": ["*://*.youtube.com/*"],
-      "js": ["content/main-world.js"],
+      "matches": [
+        "*://*.youtube.com/*"
+      ],
+      "js": [
+        "content/main-world.js"
+      ],
       "world": "MAIN",
       "run_at": "document_start"
     },
     {
-      "matches": ["*://*.youtube.com/*"],
+      "matches": [
+        "*://*.youtube.com/*"
+      ],
       "js": [
         "lib/storage.js",
         "lib/llm.js",
         "lib/subtitle.js",
         "lib/processor.js",
-        "content/content.js"
+        "content/content.js",
+        "sidebar/sidebar.js"
       ],
-      "css": ["content/content.css"],
+      "css": [
+        "content/content.css"
+      ],
       "run_at": "document_idle"
     }
   ],
@@ -47,7 +56,9 @@
         "sidebar/sidebar.js",
         "icons/*"
       ],
-      "matches": ["*://*.youtube.com/*"]
+      "matches": [
+        "*://*.youtube.com/*"
+      ]
     }
   ],
   "options_page": "settings/settings.html",

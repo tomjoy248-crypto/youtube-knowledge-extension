@@ -28,6 +28,7 @@
     sidebarHost: null,          // 侧边栏宿主元素 (#kv-sidebar-host)
     shadowRoot: null,           // Shadow DOM 根节点
     sidebarReady: false,        // 侧边栏是否已就绪
+    sidebarInitPromise: null,   // ???????????? Promise
     isProcessing: false,        // 是否正在生成知识资料
     processingProgress: 0,      // 处理进度（0-100）
     isCollapsed: false,         // 侧边栏是否折叠
@@ -167,7 +168,7 @@
    * 检查并初始化侧边栏
    * 当检测到视频页时创建/更新侧边栏
    */
-  function checkAndInitSidebar() {
+  async function checkAndInitSidebar() {
     if (!isVideoPage()) {
       // 非视频页，不处理
       return;
@@ -200,11 +201,18 @@
 
     // 如果侧边栏不存在，创建它
     if (!state.sidebarHost) {
-      createSidebar();
+      if (!state.sidebarInitPromise) {
+        state.sidebarInitPromise = createSidebar().finally(function () {
+          state.sidebarInitPromise = null;
+        });
+      }
+      await state.sidebarInitPromise;
+    } else if (state.sidebarInitPromise) {
+      await state.sidebarInitPromise;
     }
 
-    // 加载视频信息
-    loadVideoInfo(videoId);
+    // ?????????
+    await loadVideoInfo(videoId);
   }
 
   /**
@@ -218,7 +226,7 @@
       // 创建宿主元素
       var host = document.createElement('div');
       host.id = 'kv-sidebar-host';
-      document.body.appendChild(host);
+      (document.body || document.documentElement).appendChild(host);
 
       state.sidebarHost = host;
 
@@ -226,7 +234,8 @@
       var shadowRoot = host.attachShadow({ mode: 'open' });
       state.shadowRoot = shadowRoot;
 
-      // ---- 加载侧边栏 CSS ----
+      // ??????? sidebar.js ???????
+      // ????? CSS
       try {
         var cssResponse = await fetch(chrome.runtime.getURL('sidebar/sidebar.css'));
         var cssText = await cssResponse.text();
@@ -234,60 +243,54 @@
         styleEl.textContent = cssText;
         shadowRoot.appendChild(styleEl);
       } catch (err) {
-        console.error('[知视] 加载 sidebar.css 失败:', err);
+        console.error('[??] ?? sidebar.css ??:', err);
       }
 
-      // ---- 加载侧边栏 HTML 模板 ----
+      // ????? HTML ??
       try {
         var htmlResponse = await fetch(chrome.runtime.getURL('sidebar/sidebar.html'));
         var htmlText = await htmlResponse.text();
 
-        // 创建容器并注入 HTML
+        // ??????? HTML
         var container = document.createElement('div');
         container.className = 'kv-sidebar-container';
         container.innerHTML = htmlText;
         shadowRoot.appendChild(container);
       } catch (err) {
-        console.error('[知视] 加载 sidebar.html 失败:', err);
-        // 注入错误提示
+        console.error('[??] ?? sidebar.html ??:', err);
+        // ??????
         var errorDiv = document.createElement('div');
         errorDiv.style.cssText = 'padding:20px;color:#d32f2f;font-size:14px;';
-        errorDiv.textContent = '侧边栏加载失败，请刷新页面重试';
+        errorDiv.textContent = '???????????????';
         shadowRoot.appendChild(errorDiv);
       }
 
-      // ---- 动态加载 sidebar.js 到 shadow root 中执行 ----
-      // 注意：根据 HTML 规范，Shadow DOM 中的 <script> 标签不会自动执行。
-      // 因此使用 Function 构造器执行 sidebar.js 代码，并将 shadowRoot 作为参数传入，
-      // 使 sidebar.js 可以通过 shadowRoot 参数访问其内部的 DOM 元素。
-      // sidebar.js 中的 document 引用仍然是主文档，用于事件通信。
-      try {
-        var scriptResponse = await fetch(chrome.runtime.getURL('sidebar/sidebar.js'));
-        var scriptText = await scriptResponse.text();
+      window.__KV_SHADOW_ROOT__ = shadowRoot;
+      window.dispatchEvent(new CustomEvent('kv-shadow-root-ready', {
+        detail: { shadowRoot: shadowRoot }
+      }));
 
-        // 将 shadowRoot 存储为全局变量，供 sidebar.js 使用
-        window.__KV_SHADOW_ROOT__ = shadowRoot;
-
-        // 使用 Function 构造器执行 sidebar.js，传入 shadowRoot 引用
-        // 这样 sidebar.js 内部可以通过参数访问 Shadow DOM 元素
-        var sidebarInit = new Function('shadowRoot', 'document', 'window', scriptText);
-        sidebarInit.call(window, shadowRoot, document, window);
-
-        console.log('[知视] sidebar.js 已执行');
-      } catch (err) {
-        console.error('[知视] 加载/执行 sidebar.js 失败:', err);
-
-        // 后备方案：尝试创建 script 标签注入（某些浏览器可能支持）
-        try {
-          var scriptEl = document.createElement('script');
-          scriptEl.textContent = scriptText;
-          shadowRoot.appendChild(scriptEl);
-        } catch (e) {
-          console.error('[知视] 后备注入 sidebar.js 也失败:', e);
+      await new Promise(function (resolve) {
+        if (window.__KV_SIDEBAR_READY__) {
+          resolve();
+          return;
         }
-      }
 
-      state.sidebarReady = true;
+        var timeoutId = setTimeout(function () {
+          window.removeEventListener('kv-sidebar-ready', onSidebarReady);
+          resolve();
+        }, 5000);
+
+        function onSidebarReady() {
+          clearTimeout(timeoutId);
+          window.removeEventListener('kv-sidebar-ready', onSidebarReady);
+          resolve();
+        }
+
+        window.addEventListener('kv-sidebar-ready', onSidebarReady);
+      });
+
+      state.sidebarReady = !!window.__KV_SIDEBAR_READY__;
 
       // 初始化事件通信
       initSidebarCommunication();
@@ -1044,3 +1047,4 @@
     init();
   }
 })();
+
