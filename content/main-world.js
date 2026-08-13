@@ -170,30 +170,51 @@
    * 处理获取字幕轨道的请求
    * 获取轨道信息后通过 postMessage 返回结果
    */
-  function handleGetCaptionTracks() {
-    try {
-      var playerResponse = getPlayerResponse();
-      if (!playerResponse) {
-        throw new Error('无法获取播放器响应数据，请确保视频已加载');
+  function waitForCaptionTracks(maxAttempts) {
+    var attempts = 0;
+
+    return new Promise(function (resolve, reject) {
+      function check() {
+        attempts++;
+        var playerResponse = getPlayerResponse();
+        var tracks = extractCaptionTracks(playerResponse);
+        if (tracks.length > 0) {
+          resolve(tracks);
+          return;
+        }
+
+        if (attempts >= maxAttempts) {
+          if (!playerResponse) {
+            reject(new Error('无法获取播放器字幕信息，请等待视频加载完成后重试'));
+          } else {
+            reject(new Error('该视频暂未提供可读取的字幕轨道，请确认 CC 字幕已加载'));
+          }
+          return;
+        }
+
+        setTimeout(check, 500);
       }
 
-      var tracks = extractCaptionTracks(playerResponse);
-      console.log('[知视 Main World] 获取到字幕轨道:', tracks.length, '个');
+      check();
+    });
+  }
 
-      // 通过 postMessage 返回结果
+  function handleGetCaptionTracks() {
+    waitForCaptionTracks(30).then(function (tracks) {
+      console.log('[知视 Main World] 获取到字幕轨道:', tracks.length, '个');
       window.postMessage({
         type: 'KV_CAPTION_TRACKS_RESULT',
         tracks: tracks,
         error: null
       }, '*');
-    } catch (err) {
+    }).catch(function (err) {
       console.error('[知视 Main World] 获取字幕轨道失败:', err);
       window.postMessage({
         type: 'KV_CAPTION_TRACKS_RESULT',
         tracks: [],
         error: err.message || '获取字幕轨道失败'
       }, '*');
-    }
+    });
   }
 
   // ============ 视频跳转 ============
@@ -228,6 +249,69 @@
   }
 
   /**
+   * 构建多个字幕格式地址，兼容不同 YouTube 字幕接口返回格式。
+   * @param {string} baseUrl
+   * @returns {Array<string>}
+   */
+  function buildCaptionRequestUrls(baseUrl) {
+    if (!baseUrl) {
+      return [];
+    }
+
+    try {
+      var formats = ['json3', 'vtt', 'srv3', ''];
+      var urls = [];
+      for (var formatIndex = 0; formatIndex < formats.length; formatIndex++) {
+        var url = new URL(baseUrl, window.location.href);
+        if (formats[formatIndex]) {
+          url.searchParams.set('fmt', formats[formatIndex]);
+        } else {
+          url.searchParams.delete('fmt');
+        }
+        var value = url.toString();
+        if (urls.indexOf(value) === -1) {
+          urls.push(value);
+        }
+      }
+      return urls;
+    } catch (error) {
+      return [buildCaptionRequestUrl(baseUrl)];
+    }
+  }
+
+  /**
+   * 判断字幕接口响应是否包含可解析的字幕结构。
+   * @param {string} text
+   * @returns {boolean}
+   */
+  function looksLikeCaptionText(text) {
+    var normalized = String(text || '').trim();
+    if (!normalized) {
+      return false;
+    }
+
+    if (/^WEBVTT/i.test(normalized) || normalized.indexOf('-->') !== -1) {
+      return true;
+    }
+
+    if (/^</.test(normalized) && /<(?:text|p)\b/i.test(normalized)) {
+      return true;
+    }
+
+    try {
+      var parsed = JSON.parse(normalized);
+      if (!parsed || !Array.isArray(parsed.events)) {
+        return false;
+      }
+      return parsed.events.some(function (event) {
+        return event && Array.isArray(event.segs) && event.segs.length > 0;
+      });
+    } catch (error) {
+      return false;
+    }
+  }
+
+  /**
    * 向 content script 返回字幕请求结果
    * @param {Object} payload
    */
@@ -256,44 +340,55 @@
         throw new Error('字幕轨道缺少请求地址');
       }
 
-      var url = buildCaptionRequestUrl(track.baseUrl);
-      if (!url) {
+      var urls = buildCaptionRequestUrls(track.baseUrl);
+      if (urls.length === 0) {
         throw new Error('无法生成字幕请求地址');
       }
 
-      fetch(url, {
-        method: 'GET',
-        credentials: 'include',
-        cache: 'no-store'
-      }).then(function (resp) {
-        var status = resp.status;
-        var contentType = resp.headers.get('content-type') || '';
-        var finalUrl = resp.url || url;
-
-        if (!resp.ok) {
-          throw new Error('字幕请求失败（HTTP ' + status + '）：' + (resp.statusText || '未知错误'));
+      function requestNext(index, lastError) {
+        if (index >= urls.length) {
+          throw lastError || new Error('字幕接口返回了空内容');
         }
 
-        return resp.text().then(function (text) {
-          if (!text) {
-            throw new Error('字幕接口返回了空内容');
+        var url = urls[index];
+        return fetch(url, {
+          method: 'GET',
+          credentials: 'include',
+          cache: 'no-store'
+        }).then(function (resp) {
+          var status = resp.status;
+          var contentType = resp.headers.get('content-type') || '';
+          var finalUrl = resp.url || url;
+
+          if (!resp.ok) {
+            throw new Error('字幕请求失败（HTTP ' + status + '）：' + (resp.statusText || '未知错误'));
           }
 
-          postCaptionSubtitlesResult({
-            requestId: requestId,
-            text: text,
-            url: finalUrl,
-            status: status,
-            contentType: contentType,
-            error: null
+          return resp.text().then(function (text) {
+            if (!looksLikeCaptionText(text)) {
+              throw new Error('字幕接口返回了空内容');
+            }
+
+            postCaptionSubtitlesResult({
+              requestId: requestId,
+              text: text,
+              url: finalUrl,
+              status: status,
+              contentType: contentType,
+              error: null
+            });
           });
+        }).catch(function (error) {
+          return requestNext(index + 1, error);
         });
-      }).catch(function (err) {
+      }
+
+      requestNext(0).catch(function (err) {
         console.error('[知视 Main World] 获取字幕失败:', err);
         postCaptionSubtitlesResult({
           requestId: requestId,
           text: '',
-          url: url,
+          url: urls[0] || '',
           status: 0,
           contentType: '',
           error: err && err.message ? err.message : '获取字幕失败'
