@@ -121,14 +121,21 @@
 
 ## 支持的 LLM 模型
 
-| 平台 | 模型 | 特点 |
-|------|------|------|
-| Anthropic | Claude 3.5 Sonnet | 翻译质量最高，推荐 |
-| Anthropic | Claude 3.5 Haiku | 速度快，费用低 |
-| OpenAI | GPT-4o | 综合能力强 |
-| OpenAI | GPT-4o mini | 费用最低，适合测试 |
-| OpenAI | GPT-4 Turbo | 质量高 |
-| OpenAI | GPT-3.5 Turbo | 速度最快 |
+模型名可以直接手填，支持你所接入平台提供的任意 OpenAI 兼容或 Anthropic 兼容模型 ID。设置页里保留了常见模型示例，方便快速选择/复制，例如：
+
+- `gpt-5.4-mini`
+- `gpt-5.6-luna`
+- `gpt-5.4`
+- `gpt-5.5`
+- `gpt-4o-mini`
+- `gpt-4o`
+- `o3-mini`
+- `o4-mini`
+- `claude-haiku-4-5`
+- `claude-haiku-4-5-20251001`
+- `claude-sonnet-5`
+- `claude-sonnet-4-6`
+- `claude-opus-5`
 
 ## 项目结构
 

@@ -84,9 +84,9 @@
    */
   function saveSettings(showToast) {
     var settings = {
-      apiKey: getVal('api-key', ''),
-      model: getVal('llm-model', DEFAULT_SETTINGS.model),
-      apiBaseUrl: getVal('api-base-url', ''),
+      apiKey: (getVal('api-key', '') || '').trim(),
+      model: (getVal('llm-model', DEFAULT_SETTINGS.model) || '').trim(),
+      apiBaseUrl: (getVal('api-base-url', '') || '').trim(),
       translateStyle: getVal('translate-style', DEFAULT_SETTINGS.translateStyle),
       bilingualSubtitles: getChecked('bilingual-subtitles', true),
       autoGenerate: getChecked('auto-generate', false),
@@ -299,8 +299,8 @@
   function testConnection() {
     var resultEl = document.getElementById('test-result');
     var btn = document.getElementById('test-connection-btn');
-    var apiKey = getVal('api-key', '');
-    var model = getVal('llm-model', 'gpt-4o-mini');
+    var apiKey = (getVal('api-key', '') || '').trim();
+    var model = (getVal('llm-model', 'gpt-4o-mini') || '').trim();
     var baseUrl = getVal('api-base-url', '').trim();
 
     if (!apiKey) {
@@ -321,7 +321,7 @@
     }
 
     // 构建测试请求
-    var isClaude = model.indexOf('claude') === 0;
+    var isClaude = model.toLowerCase().indexOf('claude') === 0;
     var useProxy = !!baseUrl;
     var testUrl, headers, body;
 
