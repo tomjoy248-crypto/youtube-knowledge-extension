@@ -24,7 +24,7 @@
   // ========== 默认设置（与 storage.js getDefaultSettings 一致） ==========
   var DEFAULT_SETTINGS = {
     apiKey: '',
-    model: 'gpt-5.4-nano',
+    model: 'gpt-4o-mini',
     apiBaseUrl: '',                   // 自定义 API 中转地址（国内用户必填）
     translateStyle: 'readable',      // readable=通俗易读 / academic=学术严谨 / casual=口语化
     bilingualSubtitles: true,
