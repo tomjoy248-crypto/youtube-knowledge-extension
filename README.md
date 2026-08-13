@@ -19,7 +19,7 @@
 
 ### 第一步：下载安装包
 
-进入 [Releases 发布页面](https://github.com/tomjoy248-crypto/youtube-knowledge-extension/releases)，下载最新的 `KnowledgeView-v1.0.5.zip`，然后解压到本地任意位置。
+进入 [Releases 发布页面](https://github.com/tomjoy248-crypto/youtube-knowledge-extension/releases)，下载最新的 `KnowledgeView-v1.0.6.zip`，然后解压到本地任意位置。
 
 > 当前 GitHub Release 已更新为最新补丁包；如果你之前下载过旧包，请重新下载这一版。
 
@@ -30,7 +30,7 @@
 2. 页面**右上角**找到「开发者模式」开关，打开它
 3. 页面**左上角**会出现三个按钮，点击「**加载已解压的扩展程序**」
 4. 在弹出的文件夹选择框中，选中你解压出来的 `youtube-knowledge-extension` 文件夹（包含 `manifest.json` 的那个目录）
-5. 如果在扩展列表中看到「知视 KnowledgeView」卡片（版本号 1.0.5），说明安装成功
+5. 如果在扩展列表中看到「知视 KnowledgeView」卡片（版本号 1.0.6），说明安装成功
 
 > 注意：必须使用 Chrome 或 Edge 等基于 Chromium 的浏览器，Firefox 不支持。
 
@@ -109,7 +109,7 @@
 检查 API Key 是否正确填写。如果使用 Claude 模型，确保 Key 以 `sk-ant-` 开头；如果使用 GPT 模型，确保 Key 以 `sk-` 开头。
 
 **Q：粘贴地址后提示字幕为空？**
-确认视频提供字幕，然后刷新视频页重试。`v1.0.5` 会同时尝试转写面板、JSON3、XML 和 WebVTT 字幕格式，兼容 YouTube 当前的延迟加载。
+确认视频提供字幕，然后刷新视频页重试。`v1.0.6` 会同时尝试转写面板、JSON3、XML 和 WebVTT 字幕格式，兼容 YouTube 当前的延迟加载。
 
 **Q：处理很慢？**
 视频越长处理越慢。建议先用 5-15 分钟的短视频测试。`GPT-4o mini` 速度较快且费用最低。

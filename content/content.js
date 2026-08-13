@@ -76,7 +76,7 @@
       }
     }
 
-    var requestInfo = LLM.getRequestInfo(settings.model, settings.apiBaseUrl);
+    var requestInfo = LLM.getRequestInfo(settings.model, settings.apiBaseUrl, settings.apiProtocol);
     return [
       '全部 ' + chunkResults.length + ' 个分块处理失败。',
       '模型：' + (settings.model || '未填写'),
@@ -718,7 +718,7 @@
 
       // 为每个分块创建 LLM 处理 Promise
       var chunkPromises = chunks.map(function (chunk, index) {
-        return LLM.processChunk(settings.apiKey, settings.model, chunk.text, settings.translateStyle, settings.apiBaseUrl).then(
+        return LLM.processChunk(settings.apiKey, settings.model, chunk.text, settings.translateStyle, settings.apiBaseUrl, settings.apiProtocol).then(
           function (result) {
             // 处理成功，更新进度
             completedCount++;

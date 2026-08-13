@@ -26,6 +26,7 @@
     apiKey: '',
     model: 'gpt-4o-mini',
     apiBaseUrl: '',                   // 自定义 API 中转地址（可选）
+    apiProtocol: 'auto',              // auto / responses / chat
     translateStyle: 'readable',      // readable=通俗易读 / academic=学术严谨 / casual=口语化
     bilingualSubtitles: true,
     autoGenerate: false,
@@ -124,6 +125,8 @@
       setVal('api-base-url', settings.apiBaseUrl || '');
       syncApiBaseUrlPreset(settings.apiBaseUrl);
 
+      setVal('api-protocol', settings.apiProtocol || 'auto');
+
       // 翻译风格
       setVal('translate-style', settings.translateStyle);
 
@@ -149,6 +152,7 @@
       apiKey: (getVal('api-key', '') || '').trim(),
       model: (getVal('llm-model', DEFAULT_SETTINGS.model) || '').trim(),
       apiBaseUrl: (getVal('api-base-url', '') || '').trim(),
+      apiProtocol: getVal('api-protocol', DEFAULT_SETTINGS.apiProtocol),
       translateStyle: getVal('translate-style', DEFAULT_SETTINGS.translateStyle),
       bilingualSubtitles: getChecked('bilingual-subtitles', true),
       autoGenerate: getChecked('auto-generate', false),
@@ -261,6 +265,7 @@
       'llm-model',
       'api-key',
       'api-base-url',
+      'api-protocol',
       'translate-style',
       'bilingual-subtitles',
       'auto-generate',
@@ -434,6 +439,24 @@
     return trimmed + '/v1/chat/completions';
   }
 
+  function buildResponsesUrl(baseUrl) {
+    var fallbackUrl = 'https://api.openai.com/v1/responses';
+    if (!baseUrl) return fallbackUrl;
+    var trimmed = baseUrl.replace(/\/+$/, '');
+    if (!trimmed) return fallbackUrl;
+    if (trimmed.indexOf('/responses') !== -1) return trimmed;
+    if (trimmed.indexOf('/chat/completions') !== -1) {
+      return trimmed.replace(/\/chat\/completions.*$/, '/responses');
+    }
+    if (trimmed.indexOf('/v1') === trimmed.length - 3) return trimmed + '/responses';
+    return trimmed + '/v1/responses';
+  }
+
+  function resolveApiProtocol(model, protocol) {
+    if (protocol === 'responses' || protocol === 'chat') return protocol;
+    return /^(gpt-5(?:\.|-|$)|codex)/i.test(model || '') ? 'responses' : 'chat';
+  }
+
   function buildAnthropicUrl(baseUrl) {
     var fallbackUrl = 'https://api.anthropic.com/v1/messages';
 
@@ -475,6 +498,7 @@
     var apiKey = (getVal('api-key', '') || '').trim();
     var model = (getVal('llm-model', 'gpt-4o-mini') || '').trim();
     var baseUrl = getVal('api-base-url', '').trim();
+    var protocol = resolveApiProtocol(model, getVal('api-protocol', 'auto'));
 
     if (!apiKey) {
       if (resultEl) {
@@ -506,14 +530,18 @@
     var useProxy = !!baseUrl;
     var testUrl, headers, body;
 
-    body = JSON.stringify({
+    body = protocol === 'responses' ? JSON.stringify({
+      model: model,
+      input: 'Hi',
+      max_output_tokens: 10
+    }) : JSON.stringify({
       model: model,
       max_tokens: 10,
       messages: [{ role: 'user', content: 'Hi' }]
     });
 
     if (useProxy) {
-      testUrl = buildOpenAIUrl(baseUrl);
+      testUrl = protocol === 'responses' ? buildResponsesUrl(baseUrl) : buildOpenAIUrl(baseUrl);
       headers = {
         'Authorization': 'Bearer ' + apiKey,
         'content-type': 'application/json'
@@ -526,7 +554,7 @@
         'content-type': 'application/json'
       };
     } else {
-      testUrl = buildOpenAIUrl(null);
+      testUrl = protocol === 'responses' ? buildResponsesUrl(null) : buildOpenAIUrl(null);
       headers = {
         'Authorization': 'Bearer ' + apiKey,
         'content-type': 'application/json'
