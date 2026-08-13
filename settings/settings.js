@@ -248,6 +248,52 @@
     }
   }
 
+  function buildOpenAIUrl(baseUrl) {
+    var fallbackUrl = 'https://api.openai.com/v1/chat/completions';
+
+    if (!baseUrl) {
+      return fallbackUrl;
+    }
+
+    var trimmed = baseUrl.replace(/\/+$/, '');
+    if (!trimmed) {
+      return fallbackUrl;
+    }
+
+    if (trimmed.indexOf('/chat/completions') !== -1) {
+      return trimmed;
+    }
+
+    if (trimmed.indexOf('/v1') === trimmed.length - 3) {
+      return trimmed + '/chat/completions';
+    }
+
+    return trimmed + '/v1/chat/completions';
+  }
+
+  function buildAnthropicUrl(baseUrl) {
+    var fallbackUrl = 'https://api.anthropic.com/v1/messages';
+
+    if (!baseUrl) {
+      return fallbackUrl;
+    }
+
+    var trimmed = baseUrl.replace(/\/+$/, '');
+    if (!trimmed) {
+      return fallbackUrl;
+    }
+
+    if (trimmed.indexOf('/v1/messages') !== -1) {
+      return trimmed;
+    }
+
+    if (trimmed.indexOf('/v1') === trimmed.length - 3) {
+      return trimmed + '/messages';
+    }
+
+    return trimmed + '/v1/messages';
+  }
+
   // ========== 测试连接 ==========
 
   function testConnection() {
@@ -276,38 +322,34 @@
 
     // 构建测试请求
     var isClaude = model.indexOf('claude') === 0;
+    var useProxy = !!baseUrl;
     var testUrl, headers, body;
 
-    if (isClaude) {
-      var claudeBase = baseUrl || 'https://api.anthropic.com';
-      testUrl = claudeBase.replace(/\/+$/, '') + '/v1/messages';
+    body = JSON.stringify({
+      model: model,
+      max_tokens: 10,
+      messages: [{ role: 'user', content: 'Hi' }]
+    });
+
+    if (useProxy) {
+      testUrl = buildOpenAIUrl(baseUrl);
+      headers = {
+        'Authorization': 'Bearer ' + apiKey,
+        'content-type': 'application/json'
+      };
+    } else if (isClaude) {
+      testUrl = buildAnthropicUrl(null);
       headers = {
         'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
         'content-type': 'application/json'
       };
-      body = JSON.stringify({
-        model: model,
-        max_tokens: 10,
-        messages: [{ role: 'user', content: 'Hi' }]
-      });
     } else {
-      var openaiBase = baseUrl || 'https://api.openai.com';
-      var trimmedOpenai = openaiBase.replace(/\/+$/, '');
-      if (trimmedOpenai.indexOf('/v1') === trimmedOpenai.length - 3) {
-        testUrl = trimmedOpenai + '/chat/completions';
-      } else {
-        testUrl = trimmedOpenai + '/v1/chat/completions';
-      }
+      testUrl = buildOpenAIUrl(null);
       headers = {
         'Authorization': 'Bearer ' + apiKey,
         'content-type': 'application/json'
       };
-      body = JSON.stringify({
-        model: model,
-        max_tokens: 10,
-        messages: [{ role: 'user', content: 'Hi' }]
-      });
     }
 
     fetch(testUrl, {
