@@ -192,6 +192,7 @@
    *   record.cards     知识卡片数组 [{type, title, definition, englishOriginal, timestamp}]
    *   record.notes     笔记（markdown 字符串）
    *   record.timeline  时间轴数组 [{time, seconds, chapterIndex, summary}]
+   *   record.transcript 逐句转写数组 [{start, dur, text}]
    */
   function showResult(record) {
     currentResult = record || {};
@@ -204,6 +205,7 @@
       if (currentResult.cards && currentResult.cards.length) parts.push(currentResult.cards.length + '张卡片');
       if (currentResult.notes) parts.push('笔记');
       if (currentResult.timeline && currentResult.timeline.length) parts.push(currentResult.timeline.length + '个节点');
+      if (currentResult.transcript && currentResult.transcript.length) parts.push(currentResult.transcript.length + '条文稿');
       stats.textContent = parts.join(' · ') || '无数据';
     }
 
@@ -274,6 +276,9 @@
         break;
       case 'timeline':
         renderTimeline(currentResult.timeline || []);
+        break;
+      case 'transcript':
+        renderTranscript(currentResult.transcript || []);
         break;
     }
   }
@@ -600,6 +605,38 @@
         if (!isNaN(time)) {
           dispatchAction('seek', { time: time });
         }
+      }
+    });
+  }
+
+  function renderTranscript(transcript) {
+    var container = $('#kv-tab-content');
+    if (!container) return;
+
+    if (!transcript || !transcript.length) {
+      container.innerHTML = '<div class="kv-empty">暂无转写文稿，请重新生成当前视频</div>';
+      return;
+    }
+
+    var html = '<div class="kv-transcript">';
+    for (var i = 0; i < transcript.length; i++) {
+      var item = transcript[i] || {};
+      var seconds = Number(item.start) || 0;
+      html +=
+        '<div class="tr-item">' +
+          '<button class="tr-time" data-time="' + seconds + '">' + escapeHtml(formatTime(seconds)) + '</button>' +
+          '<div class="tr-text">' + escapeHtml(item.text || '') + '</div>' +
+        '</div>';
+    }
+    html += '</div>';
+    container.innerHTML = html;
+
+    container.addEventListener('click', function (event) {
+      var timeButton = event.target.closest('.tr-time');
+      if (!timeButton) return;
+      var time = parseFloat(timeButton.dataset.time);
+      if (!isNaN(time)) {
+        dispatchAction('seek', { time: time });
       }
     });
   }

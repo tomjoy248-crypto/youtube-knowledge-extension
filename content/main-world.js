@@ -200,7 +200,7 @@
   }
 
   function handleGetCaptionTracks() {
-    waitForCaptionTracks(30).then(function (tracks) {
+    waitForCaptionTracks(60).then(function (tracks) {
       console.log('[知视 Main World] 获取到字幕轨道:', tracks.length, '个');
       window.postMessage({
         type: 'KV_CAPTION_TRACKS_RESULT',

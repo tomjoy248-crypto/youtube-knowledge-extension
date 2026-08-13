@@ -460,7 +460,7 @@
   padding: 8px 4px;
   border: none;
   background: transparent;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   font-family: inherit;
   color: var(--kv-text-secondary);
@@ -859,6 +859,46 @@
 .kv-app.collapsed .kv-parse-panel,
 .kv-app.collapsed .kv-body {
   display: none;
+}
+
+.kv-transcript {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tr-item {
+  display: grid;
+  grid-template-columns: 54px 1fr;
+  gap: 8px;
+  align-items: start;
+  padding: 7px 6px;
+  border-radius: 6px;
+}
+
+.tr-item:hover {
+  background: var(--kv-primary-light);
+}
+
+.tr-time {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--kv-primary);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.tr-time:hover {
+  text-decoration: underline;
+}
+
+.tr-text {
+  color: var(--kv-text);
+  font-size: 13px;
+  line-height: 1.55;
 }
 
 .kv-error-actions {

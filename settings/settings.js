@@ -457,6 +457,16 @@
     return trimmed + '/v1/messages';
   }
 
+  function looksLikeDashboardUrl(baseUrl) {
+    if (!baseUrl) return false;
+    try {
+      var pathname = new URL(baseUrl).pathname.toLowerCase();
+      return /\/(keys?|login|dashboard|console|account)(?:\/|$)/.test(pathname);
+    } catch (error) {
+      return false;
+    }
+  }
+
   // ========== 测试连接 ==========
 
   function testConnection() {
@@ -469,6 +479,14 @@
     if (!apiKey) {
       if (resultEl) {
         resultEl.textContent = '请先填写 API Key';
+        resultEl.style.color = '#e74c3c';
+      }
+      return;
+    }
+
+    if (looksLikeDashboardUrl(baseUrl)) {
+      if (resultEl) {
+        resultEl.textContent = 'API 地址看起来是控制台或密钥管理页。二狗 API 请填写：https://ergouapi.com/v1';
         resultEl.style.color = '#e74c3c';
       }
       return;
