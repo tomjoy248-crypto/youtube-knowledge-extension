@@ -19,7 +19,7 @@
 
 ### 第一步：下载安装包
 
-进入 [Releases 发布页面](https://github.com/tomjoy248-crypto/youtube-knowledge-extension/releases)，下载最新的 `KnowledgeView-v1.0.7.zip`，然后解压到本地任意位置。
+进入 [Releases 发布页面](https://github.com/tomjoy248-crypto/youtube-knowledge-extension/releases)，下载最新的 `KnowledgeView-v1.0.8.zip`，然后解压到本地任意位置。
 
 > 当前 GitHub Release 已更新为最新补丁包；如果你之前下载过旧包，请重新下载这一版。
 
@@ -109,7 +109,7 @@
 检查 API Key 是否正确填写。如果使用 Claude 模型，确保 Key 以 `sk-ant-` 开头；如果使用 GPT 模型，确保 Key 以 `sk-` 开头。
 
 **Q：粘贴地址后提示字幕为空？**
-确认视频提供字幕，然后刷新视频页重试。`v1.0.7` 会完整滚动采集 YouTube 转写面板，并同时尝试 JSON3、XML 和 WebVTT 字幕格式；如果字幕首尾覆盖不完整，会明确报错而不会继续生成残缺内容。
+确认视频提供字幕，然后刷新视频页重试。`v1.0.8` 会完整滚动采集 YouTube 转写面板，并同时尝试 JSON3、XML 和 WebVTT 字幕格式；如果字幕首尾覆盖不完整，会明确报错而不会继续生成残缺内容。
 
 **Q：处理很慢？**
 视频越长处理越慢。建议先用 5-15 分钟的短视频测试。`GPT-4o mini` 速度较快且费用最低。
