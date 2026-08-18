@@ -685,8 +685,11 @@
         console.log('[知视] 未取得字幕轨道，直接读取转写文稿');
       }
 
-      // 获取字幕内容
-      var subtitles = await SubtitleFetcher.fetchSubtitles(englishTrack);
+      // 获取字幕内容：优先英文轨道，失败后按其余字幕轨道和页面转写文稿回退
+      var orderedTracks = englishTrack ? [englishTrack].concat(tracks.filter(function (track) {
+        return track !== englishTrack;
+      })) : tracks;
+      var subtitles = await SubtitleFetcher.fetchSubtitles(orderedTracks.length > 0 ? orderedTracks : englishTrack);
       if (!subtitles || subtitles.length === 0) {
         throw new Error('字幕内容为空，该视频可能没有有效字幕');
       }

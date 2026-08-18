@@ -199,8 +199,88 @@
     });
   }
 
+  function getCurrentVideoId() {
+    var playerResponse = getPlayerResponse();
+    if (playerResponse && playerResponse.videoDetails && playerResponse.videoDetails.videoId) {
+      return String(playerResponse.videoDetails.videoId);
+    }
+
+    try {
+      return new URL(window.location.href).searchParams.get('v') || '';
+    } catch (error) {
+      return '';
+    }
+  }
+
+  function getInnertubeApiKey() {
+    try {
+      if (window.ytcfg && typeof window.ytcfg.get === 'function') {
+        return String(window.ytcfg.get('INNERTUBE_API_KEY') || '');
+      }
+    } catch (error) {
+      return '';
+    }
+    return '';
+  }
+
+  function requestMobileCaptionTracks() {
+    var videoId = getCurrentVideoId();
+    var apiKey = getInnertubeApiKey();
+    if (!videoId || !apiKey) {
+      return Promise.reject(new Error('移动端字幕接口尚未就绪'));
+    }
+
+    var requestUrl = '/youtubei/v1/player?prettyPrint=false&key=' + encodeURIComponent(apiKey);
+    var requestBody = {
+      context: {
+        client: {
+          clientName: 'ANDROID',
+          clientVersion: '20.10.38',
+          androidSdkVersion: 35,
+          hl: 'en',
+          gl: 'US',
+          userAgent: 'com.google.android.youtube/20.10.38 (Linux; U; Android 15)'
+        }
+      },
+      videoId: videoId,
+      contentCheckOk: true,
+      racyCheckOk: true
+    };
+
+    return fetch(requestUrl, {
+      method: 'POST',
+      credentials: 'include',
+      cache: 'no-store',
+      headers: {
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify(requestBody)
+    }).then(function (response) {
+      return response.text().then(function (text) {
+        if (!response.ok) {
+          throw new Error('移动端字幕接口请求失败（HTTP ' + response.status + '）');
+        }
+
+        var playerResponse = JSON.parse(text);
+        var tracks = extractCaptionTracks(playerResponse);
+        if (tracks.length === 0) {
+          throw new Error('移动端播放器未返回字幕轨道');
+        }
+        return tracks;
+      });
+    });
+  }
+
   function handleGetCaptionTracks() {
-    waitForCaptionTracks(60).then(function (tracks) {
+    waitForCaptionTracks(60).then(function (webTracks) {
+      return requestMobileCaptionTracks().then(function (mobileTracks) {
+        console.log('[知视 Main World] 使用移动端字幕轨道:', mobileTracks.length, '个');
+        return mobileTracks;
+      }).catch(function (error) {
+        console.warn('[知视 Main World] 移动端字幕轨道不可用，回退网页轨道:', error);
+        return webTracks;
+      });
+    }).then(function (tracks) {
       console.log('[知视 Main World] 获取到字幕轨道:', tracks.length, '个');
       window.postMessage({
         type: 'KV_CAPTION_TRACKS_RESULT',
@@ -365,7 +445,7 @@
           }
 
           return resp.text().then(function (text) {
-            if (!looksLikeCaptionText(text)) {
+            if (!String(text || '').trim()) {
               throw new Error('字幕接口返回了空内容');
             }
 
